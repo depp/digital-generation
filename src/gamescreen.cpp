@@ -79,14 +79,15 @@ void GameScreen::update(unsigned ticks)
         if (delta > LAG_THRESHOLD) {
             m_tickref = ticks;
             m_delta = 0;
-            m_level->advance(getControls());
+            m_level->advance(ticks, getControls());
         } else {
             if (delta >= (unsigned) FRAME_TIME) {
                 unsigned ctl = getControls();
                 unsigned frames = delta / FRAME_TIME;
-                m_tickref += frames * FRAME_TIME;
+                unsigned ref = m_tickref;
                 for (unsigned i = 0; i < frames; ++i)
-                    m_level->advance(ctl);
+                    m_level->advance(ref + (i + 1) * FRAME_TIME, ctl);
+                m_tickref = ref + FRAME_TIME * frames;
                 delta -= FRAME_TIME * frames;
             }
             m_delta = delta;

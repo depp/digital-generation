@@ -4,6 +4,7 @@
 namespace LD24 {
 
 static const int FRAME_TIME = 8;
+static const int SECOND = 1000 / FRAME_TIME;
 
 static const int SCREEN_WIDTH = 1280;
 static const int SCREEN_HEIGHT = 720;
@@ -24,6 +25,11 @@ enum {
     FLAG_DOWN = 1 << CTL_DOWN,
     FLAG_ACTION = 1 << CTL_ACTION
 };
+
+inline int fix2i(int x)
+{
+    return (x + 128) >> 8;
+}
 
 }
 #endif

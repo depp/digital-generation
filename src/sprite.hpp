@@ -39,33 +39,33 @@ public:
 
 struct Sprite {
     Sprite()
-        : px(0), py(0), ppx(0), ppy(0)
+        : x(0), y(0), px(0), py(0)
     { }
 
     void update()
-    {
-        ppx = px;
-        ppy = py;
-    }
-
-    void moveTo(int x, int y)
     {
         px = x;
         py = y;
     }
 
-    void setPos(int x, int y)
+    void moveTo(int xx, int yy)
     {
-        ppx = px = x;
-        ppy = py = y;
+        x = xx;
+        y = yy;
+    }
+
+    void setPos(int xx, int yy)
+    {
+        px = x = xx;
+        py = y = yy;
     }
 
     void draw(const SpriteSheet &sp, int frac,
-              int n, float sx, float sy) const
+              int n, float sxx, float syy) const
     {
-        int x = ppx + (px - ppx) * frac / FRAME_TIME;
-        int y = ppy + (py - ppy) * frac / FRAME_TIME;
-        sp.draw(n, x, y, sx, sy);
+        int xx = px + (x - px) * frac / FRAME_TIME;
+        int yy = py + (y - py) * frac / FRAME_TIME;
+        sp.draw(n, xx, yy, sxx, syy);
     }
 
     void draw(const SpriteSheet &sp, int frac, int n, float s) const
@@ -78,8 +78,8 @@ struct Sprite {
         draw(sp, frac, n, 1.0f, 1.0f);
     }
 
+    short x, y;
     short px, py;
-    short ppx, ppy;
 };
 
 

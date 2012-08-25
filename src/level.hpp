@@ -17,7 +17,7 @@ public:
     /* Advance one frame, 8 milliseconds.  The controls are the FLAG
        constant above, combined to show which buttons the user has
        down.  */
-    virtual void advance(int controls) = 0;
+    virtual void advance(unsigned msec, int controls) = 0;
 
     /* Draw the frame (frac is milliseconds since 'advance') */
     virtual void draw(int frac) = 0;
