@@ -9,7 +9,11 @@ private:
     Letterbox m_letterbox;
     Texture::Ref tex_charge;
 
+    void drawCharge(unsigned msec, int amt);
+
 public:
+    static const int MAX_CHARGE = 20;
+
     GameScreen();
     virtual ~GameScreen();
 

@@ -1,3 +1,5 @@
+color.cpp
+color.hpp
 gamescreen.cpp
 gamescreen.hpp
 main.cpp
