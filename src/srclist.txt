@@ -5,3 +5,5 @@ gamescreen.hpp
 main.cpp
 sprite.cpp
 sprite.hpp
+text.hpp
+text.cpp

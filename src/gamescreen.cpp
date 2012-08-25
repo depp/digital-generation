@@ -1,11 +1,14 @@
 #include "gamescreen.hpp"
 #include "sprite.hpp"
 #include "color.hpp"
+#include "text.hpp"
 
 #include "client/viewport.hpp"
 #include "client/opengl.hpp"
+#include "client/bitmapfont.hpp"
 
 using namespace LD24;
+
 
 GameScreen::GameScreen()
 {
@@ -62,6 +65,8 @@ void GameScreen::draw(Viewport &v, unsigned msec)
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    getFont().print(200, 10, "Hello, world");
 
     drawCharge(msec, (msec % 1000) / 48);
 
