@@ -88,6 +88,36 @@ struct Sprite {
     short px, py;
 };
 
+namespace LV3 {
+
+extern const char TEXNAME[];
+extern const SpriteSheet SPRITES;
+
+enum {
+    BASE,
+    BUNK1,
+    BUNK2,
+    PLYR1,
+    PLYR2,
+    PLYL1,
+    PLYL2,
+    TANK,
+    SHOT1L,
+    SHOT1C,
+    SHOT1R,
+    POOF1,
+    SHOT2,
+    POOF2,
+    SHIP1,
+    SHIP2,
+    SHIP3,
+    KITR,
+    KITL,
+
+    COUNT
+};
+
+}
 
 }
 #endif

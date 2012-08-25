@@ -16,10 +16,28 @@ void SpriteSheet::draw(int n, float x, float y, float sx, float sy) const
     float v0 = (1.0f / h) * (height - s.y0);
     float v1 = (1.0f / h) * (height - s.y1);
 
-    float x0 = x + (float) (s.x0 - (s.xc + s.x0)) * sx;
-    float x1 = x + (float) (s.x1 - (s.xc + s.x0)) * sx;
-    float y0 = y + (float) (s.y0 - (s.yc + s.y0)) * sy;
-    float y1 = y + (float) (s.y1 - (s.yc + s.y0)) * sy;
+
+
+    float x0, x1, y0, y1;
+    if (s.x0 <= s.x1) {
+        x0 = (float) (s.x0 - (s.xc + s.x0)) * sx;
+        x1 = (float) (s.x1 - (s.xc + s.x0)) * sx;
+    } else {
+        x0 = (float) (s.x1 - (s.xc + s.x1)) * sx;
+        x1 = (float) (s.x0 - (s.xc + s.x1)) * sx;
+    }
+    x0 += x;
+    x1 += x;
+
+    if (s.y0 <= s.y1) {
+        y0 = (float) (s.y0 - (s.yc + s.y0)) * sy;
+        y1 = (float) (s.y1 - (s.yc + s.y0)) * sy;
+    } else {
+        y0 = (float) (s.y1 - (s.yc + s.y1)) * sy;
+        y1 = (float) (s.y0 - (s.yc + s.y1)) * sy;
+    }
+    y0 += y;
+    y1 += y;
 
     glTexCoord2f(u0, v0); glVertex2f(x0, y0); // 0
     glTexCoord2f(u1, v1); glVertex2f(x1, y1); // 3
@@ -66,3 +84,29 @@ static const SpriteSheet::Sprite LV1_SPRITES[] = {
 const SpriteSheet SpriteSheet::LV1(
     256, 256, LV1_SPRITES, ALEN(LV1_SPRITES));
 
+static const SpriteSheet::Sprite LV3_SPRITES[LV3::COUNT] = {
+{   0,   0,  64,  64,  32,  32 }, // base
+{   0,  64,  64,  96,  32,  16 }, // bunk1
+{   0,  96,  64, 128,  32,  16 }, // bunk2
+{  64,   0,  80,  32,   8,  16 }, // plyr1
+{  80,   0,  96,  32,   8,  16 }, // plyr2
+{  80,   0,  64,  32,   8,  16 }, // plyl1
+{  96,   0,  80,  32,   8,  16 }, // plyl2
+{  96,   0, 128,  32,  16,  16 }, // tank
+{  96,  48,  80,  64,   8,   8 }, // shot1l
+{  64,  48,  80,  64,   8,   8 }, // shot1c
+{  80,  48,  96,  64,   8,   8 }, // shot1r
+{  80,  32,  96,  48,   8,   8 }, // poof1
+{  96,  32, 112,  64,   8,  16 }, // shot2
+{ 112,  32, 128,  64,   8,  16 }, // poof2
+{  64,  64,  96,  96,  16,  16 }, // ship1
+{  96,  64, 128,  96,  16,  16 }, // ship2
+{  64,  96, 128, 128,  32,  16 }, // ship3
+{  64,  32,  80,  48,   8,   8 }, // kitr
+{  80,  32,  64,  48,   8,   8 }  // kitl
+};
+
+const char LV3::TEXNAME[] = "img/lv3";
+
+const SpriteSheet LV3::SPRITES(
+    128, 128, LV3_SPRITES, ALEN(LV3_SPRITES));
