@@ -23,6 +23,7 @@ void GameScreen::update(unsigned ticks)
 
 void GameScreen::drawCharge(unsigned msec, int amt)
 {
+    int i;
     if (amt > MAX_CHARGE)
         amt = MAX_CHARGE;
     tex_charge->bind();
@@ -30,10 +31,13 @@ void GameScreen::drawCharge(unsigned msec, int amt)
     glBegin(GL_TRIANGLES);
     glColor3ub(255, 255, 255);
     Sprites::CHARGE.draw(0, 80, 32, 1.0f);
-    for (int i = 0; i < amt; ++i) {
+    for (i = 0; i < amt; ++i) {
         float frac = i * (1.0f / (MAX_CHARGE - 1));
-        Color::hsl(0.0f + 120.0f * frac, 1.0f, 0.2f + 0.6f * frac).set();
-        // glColor3ub(i * 12, i*12, i*12);
+        Color::hsl(0.0f + 120.0f * frac, 1.0f, 0.1f + 0.5f * frac).set();
+        Sprites::CHARGE.draw(1 + i * 6 / 20, 80, 80 + 32 * i, 1.0f);
+    }
+    glColor3ub(9, 9, 9);
+    for (; i < MAX_CHARGE; ++i) {
         Sprites::CHARGE.draw(1 + i * 6 / 20, 80, 80 + 32 * i, 1.0f);
     }
     glEnd();
