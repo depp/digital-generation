@@ -32,6 +32,9 @@ private:
         PLAYER_MAXFALL = 1024,
         PLAYER_JUMP = 512 * 6;
 
+    static const int MAX_SCORE = 1,
+        PRE_TIME = 30, CHAOS_TIME = 5; //30 5
+
     typedef enum {
         ST_INIT,
         ST_START,
@@ -86,11 +89,14 @@ private:
     int m_playvx, m_playvy;
     Sprite m_player;
 
+    Sprite m_winner;
+
     Texture::Ref m_lv1;
 
     /* SOUND */
     AudioSource m_agame;
     AudioSource m_aplayer;
+    AudioSource m_anoise;
     AudioFile::Ref m_fx[FX_COUNT];
     int m_sball;
 

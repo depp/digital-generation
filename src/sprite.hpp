@@ -78,6 +78,12 @@ struct Sprite {
         draw(sp, frac, n, 1.0f, 1.0f);
     }
 
+    void getPos(int frac, int &xx, int &yy) const
+    {
+        xx = px + (x - px) * frac / FRAME_TIME;
+        yy = py + (y - py) * frac / FRAME_TIME;
+    }
+
     short x, y;
     short px, py;
 };

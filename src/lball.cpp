@@ -46,6 +46,7 @@ LBall::LBall(GameScreen &screen)
 
     m_agame.open();
     m_aplayer.open();
+    m_anoise.open();
 
     static const char FX_NAME[FX_COUNT][5] = {
         "png", "bad", "good", "jmp", "land", "step", "boom"
@@ -100,8 +101,12 @@ void LBall::advance(unsigned time, int controls)
 
     case ST_MATCH_P1:
     case ST_MATCH_P2:
-        if (m_tick > 8 * SECOND)
+        break;
+        if (m_tick > 8 * SECOND) {
+            m_npoints[0] = 0;
+            m_npoints[1] = 0;
             goto start;
+        }
         break;
 
     start:
@@ -115,24 +120,29 @@ void LBall::advance(unsigned time, int controls)
 
     switch (sst) {
     case SS_BEGIN:
-        if (m_stick > 30 * SECOND) {
+        if (m_stick > PRE_TIME * SECOND) {
             m_stick = 0;
             m_sstate = SS_CHAOS;
+            m_anoise.play(time, *m_fx[FX_BOOM], 0);
         }
         break;
 
     case SS_CHAOS:
-        if (m_stick > 5 * SECOND)
+        if (m_stick > CHAOS_TIME * SECOND) {
+            m_stick = 0;
             goto spit;
+        }
         break;
 
     case SS_SPIT:
-        break;
-
     case SS_OUT:
+        if (m_stick > 5 * SECOND)
+            m_stick = 0;
         break;
 
     case SS_IN:
+        if (m_stick > 5 * SECOND)
+            m_stick = 0;
         if (ctl_delta & FLAG_ACTION)
             goto spit;
         break;
@@ -190,36 +200,94 @@ void LBall::advance(unsigned time, int controls)
     }
     if (sst == SS_SPIT || sst == SS_OUT) {
         int fx = -1;
+        bool cancel = false;
+
         m_playx += m_playvx;
-        if (m_playx >= BALL_XMAX * 256) {
-            m_playx = BALL_XMAX * 256;
-        } else if (m_playx <= -BALL_XMAX * 256) {
-            m_playx = -BALL_XMAX * 256;
-            int delta = fix2i(m_playy) - m_paddlepos[0];
-            if (delta >= -CONTACT_HEIGHT / 2 &&
-                delta <= CONTACT_HEIGHT / 2)
-            {
-                m_sstate = SS_IN;
-                fx = (int) FX_GOOD;
+        m_playy += m_playvy;
+
+        int x0 = 0, x1 = 0, y0 = 0, y1 = 0;
+        bool boxh, boxv, boxc;
+        if (st == ST_MATCH_P1 || st == ST_MATCH_P2) {
+            x0 = -15*8;
+            x1 = 15*8;
+            y0 = -8*8;
+            y1 = 5*8;
+            int dx = st == ST_MATCH_P1 ? -SCREEN_WIDTH/4 : +SCREEN_WIDTH/4;
+            x0 += dx;
+            x1 += dx;
+            boxh = m_playx >= x0 * 256 && m_playx <= x1 * 256;
+            boxv = m_playy >= y0 * 256 && m_playy <= y1 * 256;
+            boxc = boxh && boxv;
+            // std::printf("%d %d %d %d\n", x0, x1, y0, y1);
+        } else {
+            boxh = false;
+            boxv = false;
+            boxc = false;
+        }
+
+        if (m_playvx > 0) {
+            if (m_playx >= BALL_XMAX * 256) {
+                m_playx = BALL_XMAX * 256;
+            } else if (boxc && m_playx - m_playvx < 256 * x0) {
+                m_playx = x0 * 256 - 1;
+                boxc = false;
+            }
+        } else if (m_playvx < 0) {
+            if (m_playx <= -BALL_XMAX * 256) {
+                m_playx = -BALL_XMAX * 256;
+                int delta = fix2i(m_playy) - m_paddlepos[0];
+                if (delta >= -CONTACT_HEIGHT / 2 &&
+                    delta <= CONTACT_HEIGHT / 2)
+                {
+                    m_sstate = SS_IN;
+                    fx = (int) FX_GOOD;
+                    cancel = true;
+                }
+            } else if (boxc && m_playx - m_playvx > 256 * x1) {
+                m_playx = x1 * 256 + 1;
+                boxc = false;
             }
         }
 
-        if (fx < 0) {
-            m_playy += m_playvy;
+        if (!cancel) {
+            int surf;
+
             if (m_playy <= -BALL_YMAX * 256) {
+                surf = -BALL_YMAX * 256;
+                goto stand;
+            }
+            if (boxc && m_playy > 256 * (y0 + y1) / 2) {
+                surf = y1 * 256;
+                goto stand;
+            }
+
+            if (m_playy >= BALL_YMAX * 256) {
+                surf = BALL_YMAX * 256;
+                goto ceiling;
+            }
+            if (boxc) {
+                surf = y0 * 256;
+                goto ceiling;
+            }
+
+            if (0) {
+            stand:
                 if (m_playvy < 0) {
                     fx = (int) FX_LAND;
                     m_playvy = 0;
                 }
                 m_sstate = SS_OUT;
-                m_playy = -BALL_YMAX * 256;
+                m_playy = surf;
                 if (ctl_delta & FLAG_UP) {
                     fx = (int) FX_JMP;
                     m_playvy = PLAYER_JUMP;
+                } else {
+                    m_playvy = 0;
                 }
-            } else if (m_playy >= BALL_YMAX * 256) {
-                m_playy = BALL_YMAX * 256;
-                m_playvy = 0;
+            } else if (0) {
+            ceiling:
+                m_playy = surf;
+                m_playvy = -PLAYER_GRAVITY;
             } else {
                 m_playvy -= PLAYER_GRAVITY;
             }
@@ -289,6 +357,15 @@ void LBall::advance(unsigned time, int controls)
                 m_agame.stop(time);
                 m_agame.pset(AudioSource::PAN, time, 0.0f);
                 m_agame.play(time, *m_fx[fx], 0);
+                if (m_npoints[0] == MAX_SCORE) {
+                    m_winner.setPos(SCREEN_WIDTH/4,
+                                    SCREEN_HEIGHT/2 - 5*8);
+                    m_state = ST_MATCH_P1;
+                } else if (m_npoints[1] == MAX_SCORE) {
+                    m_winner.setPos(3*SCREEN_WIDTH/4,
+                                    SCREEN_HEIGHT/2 - 5*8);
+                    m_state = ST_MATCH_P2;
+                }
             }
         }
 
@@ -377,6 +454,15 @@ void LBall::draw(int frac)
     pscore(pts + 2, m_npoints[1]);
     for (int i = 0; i < 4; ++i)
         m_score[i].draw(s, frac, SP_NUMBER + pts[i]);
+
+    if (m_state == ST_MATCH_P1 || m_state == ST_MATCH_P2) {
+        int x, y;
+        int i = m_state == ST_MATCH_P1 ? 1 : 2;
+        m_winner.getPos(frac, x, y);
+        s.draw(SP_P,          x - 14*8, y);
+        s.draw(SP_NUMBER + i, x -  7*8, y);
+        s.draw(SP_WIN,        x +  2*8, y);
+    }
 
     if (m_sstate == SS_SPIT || m_sstate == SS_OUT) {
         glColor3ub(250, 200, 15);
