@@ -1,3 +1,6 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
+#ifndef LD24_LEVEL_HPP
+#define LD24_LEVEL_HPP
 namespace LD24 {
 class GameScreen;
 
@@ -38,3 +41,4 @@ public:
 };
 
 }
+#endif

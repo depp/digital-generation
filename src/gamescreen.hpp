@@ -1,3 +1,6 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
+#ifndef LD24_GAMESCREEN_HPP
+#define LD24_GAMESCREEN_HPP
 #include "client/ui/screen.hpp"
 #include "client/ui/keymanager.hpp"
 #include "client/letterbox.hpp"
@@ -39,3 +42,4 @@ public:
 };
 
 } // namespace LD24
+#endif

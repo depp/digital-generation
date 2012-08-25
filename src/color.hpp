@@ -1,3 +1,6 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
+#ifndef LD24_COLOR_HPP
+#define LD24_COLOR_HPP
 #include "client/opengl.hpp"
 namespace LD24 {
 
@@ -21,3 +24,4 @@ struct Color {
 };
 
 }
+#endif

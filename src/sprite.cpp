@@ -1,3 +1,4 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "sprite.hpp"
 #include "client/opengl.hpp"
 #include <assert.h>

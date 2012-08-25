@@ -1,3 +1,4 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "text.hpp"
 #include "client/bitmapfont.hpp"
 using namespace LD24;

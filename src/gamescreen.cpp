@@ -1,3 +1,4 @@
+/* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "gamescreen.hpp"
 #include "sprite.hpp"
 #include "color.hpp"
