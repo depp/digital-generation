@@ -423,6 +423,7 @@ void LBall::draw(int frac)
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
+    m_lv1->bind();
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
     glBegin(GL_TRIANGLES);

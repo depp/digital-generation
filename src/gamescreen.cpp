@@ -140,14 +140,15 @@ void GameScreen::draw(Viewport &v, unsigned msec)
     if (m_level)
         m_level->draw(m_delta);
 
-    /*
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    getFont().print(200, 10, "Hello, world");
-
-    drawCharge(msec, (msec % 1000) / 48);
-    */
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+    getFont().print(
+        8, 8,
+        "Use arrow keys or <WASD> to move. "
+        "Use <space> or <enter> to perform an action.");
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
 
     m_letterbox.disable();
 }
