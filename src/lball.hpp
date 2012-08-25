@@ -4,6 +4,7 @@
 #include "defs.hpp"
 #include "level.hpp"
 #include "sprite.hpp"
+#include "client/audio.hpp"
 #include "client/texture.hpp"
 namespace LD24 {
 
@@ -23,6 +24,7 @@ private:
     static const int PADDLE_YMAX = AREA_YMAX - PADDLE_HEIGHT / 2;
 
     typedef enum {
+        ST_INIT,
         ST_START,
         ST_PLAY,
         ST_POINT_P1,
@@ -30,6 +32,18 @@ private:
         ST_MATCH_P1,
         ST_MATCH_P2
     } State;
+
+    typedef enum {
+        FX_PNG,
+        FX_BAD,
+        FX_GOOD,
+        FX_JMP,
+        FX_LAND,
+        FX_STEP,
+        FX_BOOM
+    } Effect;
+
+    static const int FX_COUNT = (int) FX_BOOM + 1;
 
     State m_state;
     int m_tick;
@@ -47,6 +61,11 @@ private:
     Sprite m_score[4];
 
     Texture::Ref m_lv1;
+
+    /* SOUND */
+    AudioSource m_agame;
+    AudioFile::Ref m_fx[FX_COUNT];
+    int m_sball;
 
     static int dotPos(int i)
     {

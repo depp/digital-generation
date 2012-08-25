@@ -13,6 +13,8 @@
 #include "client/bitmapfont.hpp"
 #include "client/keycode.hpp"
 
+#include "base/audio_source.h"
+
 static const unsigned LAG_THRESHOLD = 250;
 
 using namespace LD24;
@@ -93,7 +95,7 @@ void GameScreen::update(unsigned ticks)
             m_delta = delta;
         }
     }
-
+    sg_audio_source_commit(ticks, ticks);
 }
 
 void GameScreen::drawCharge(unsigned msec, int amt)

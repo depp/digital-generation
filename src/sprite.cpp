@@ -60,6 +60,7 @@ static const SpriteSheet::Sprite LV1_SPRITES[] = {
 { 228, 116, 252, 140,  12,  12 },
 {   4,  20,  44,  92,   4,   4 },
 {  52,  20, 172,  92,   4,   4 },
+{ 228,  68, 252, 108,  12,   4 }
 };
 
 const SpriteSheet SpriteSheet::LV1(

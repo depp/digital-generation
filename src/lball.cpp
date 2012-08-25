@@ -3,6 +3,7 @@
 #include "sprite.hpp"
 #include "client/rand.hpp"
 #include <cstdio>
+#include <cstring>
 using namespace LD24;
 
 enum {
@@ -34,6 +35,20 @@ LBall::LBall(GameScreen &screen)
 
     advance(0, 0);
     advance(0, 0);
+    m_state = ST_START;
+
+    m_agame.open();
+
+    static const char FX_NAME[FX_COUNT][5] = {
+        "png", "bad", "good", "jmp", "land", "step", "boom"
+    };
+
+    for (int i = 0; i < FX_COUNT; ++i) {
+        char name[16];
+        std::strcpy(name, "fx/1_");
+        std::strcat(name, FX_NAME[i]);
+        m_fx[i] = AudioFile::file(name);
+    }
 }
 
 LBall::~LBall()
@@ -43,12 +58,12 @@ void LBall::advance(unsigned msec, int controls)
 {
     int pm[2];
     State st = m_state;
-    /* CAREFUL msec is invalid first two times */
-
-    (void) msec;
 
     m_tick += 1;
     switch (st) {
+    case ST_INIT:
+        break;
+
     case ST_START:
         if (m_tick > 1 * SECOND) {
             m_state = ST_PLAY;
@@ -65,14 +80,19 @@ void LBall::advance(unsigned msec, int controls)
     case ST_POINT_P1:
     case ST_POINT_P2:
         if (m_tick > 2 * SECOND)
-            m_state = ST_START;
+            goto start;
         break;
 
     case ST_MATCH_P1:
     case ST_MATCH_P2:
         if (m_tick > 8 * SECOND)
-            m_state = ST_START;
+            goto start;
         break;
+
+    start:
+        m_ballx = 0;
+        m_bally = 0;
+        m_state = ST_START;
     }
 
     pm[0] = 0;
@@ -101,15 +121,16 @@ void LBall::advance(unsigned msec, int controls)
     }
 
     m_ball.update();
-    if (st == ST_START) {
-        m_ballx = 0;
-        m_bally = 0;
-    } else if (st == ST_PLAY) {
+    if (st == ST_PLAY) {
+        bool bounce = false;
+
         m_bally += m_ballvy;
         if (m_bally >= BALL_YMAX * 256) {
+            bounce = true;
             m_bally = BALL_YMAX * 256;
             m_ballvy = -m_ballvy;
         } else if (m_bally <= -BALL_YMAX * 256) {
+            bounce = true;
             m_bally = -BALL_YMAX * 256;
             m_ballvy = -m_ballvy;
         }
@@ -128,15 +149,30 @@ void LBall::advance(unsigned msec, int controls)
             if (delta <= CONTACT_HEIGHT/2 &&
                 delta >= -CONTACT_HEIGHT/2)
             {
+                bounce = true;
                 m_ballvx = -m_ballvx;
                 m_ballvy = (delta * 512) / (CONTACT_HEIGHT / 2);
             } else {
-                m_state = paddle == 0 ? ST_POINT_P1 : ST_POINT_P2;
+                bounce = false;
+                if (paddle == 0) {
+                    m_state = ST_POINT_P2;
+                    m_agame.play(msec, *m_fx[FX_BAD], 0);
+                    m_npoints[1] += 1;
+                } else {
+                    m_state = ST_POINT_P1;
+                    m_agame.play(msec, *m_fx[FX_GOOD], 0);
+                    m_npoints[0] += 1;
+                }
             }
         }
+
+        if (bounce)
+            m_agame.play(msec, *m_fx[FX_PNG], 0);
     }
     m_ball.moveTo(fix2i(m_ballx) + SCREEN_WIDTH / 2,
                   fix2i(m_bally) + SCREEN_HEIGHT / 2);
+    if (st == ST_START)
+        m_ball.update();
 
     for (int i = 0; i < 2; ++i) {
         m_paddle[i].update();
