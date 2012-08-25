@@ -17,6 +17,12 @@ private:
     Sprite m_paddle[2];
     Sprite m_dots[2][DOT_COUNT];
 
+    int m_ballx, m_bally;
+    int m_ballvx, m_ballvy;
+    Sprite m_ball;
+
+    Sprite m_score[4];
+
     Texture::Ref m_lv1;
 
     static int dotPos(int i)
