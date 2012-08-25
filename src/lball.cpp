@@ -93,8 +93,7 @@ void LBall::advance(unsigned time, int controls)
     case ST_PLAY:
         break;
 
-    case ST_POINT_P1:
-    case ST_POINT_P2:
+    case ST_POINT:
         if (m_tick > 2 * SECOND)
             goto start;
         break;
@@ -116,14 +115,14 @@ void LBall::advance(unsigned time, int controls)
 
     switch (sst) {
     case SS_BEGIN:
-        if (m_stick > 1 * SECOND) {
+        if (m_stick > 30 * SECOND) {
             m_stick = 0;
             m_sstate = SS_CHAOS;
         }
         break;
 
     case SS_CHAOS:
-        if (m_stick > 1 * SECOND)
+        if (m_stick > 5 * SECOND)
             goto spit;
         break;
 
@@ -278,13 +277,13 @@ void LBall::advance(unsigned time, int controls)
                 bounce = false;
                 int fx;
                 if (paddle == 0) {
-                    m_state = ST_POINT_P2;
+                    m_state = ST_POINT;
                     fx = (int) FX_BAD;
                     m_agame.play(time, *m_fx[FX_BAD], 0);
                     m_npoints[1] += 1;
                 } else {
-                    m_state = ST_POINT_P1;
-                    fx = (int) FX_BAD;
+                    m_state = ST_POINT;
+                    fx = (int) FX_GOOD;
                     m_npoints[0] += 1;
                 }
                 m_agame.stop(time);

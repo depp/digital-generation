@@ -36,8 +36,7 @@ private:
         ST_INIT,
         ST_START,
         ST_PLAY,
-        ST_POINT_P1,
-        ST_POINT_P2,
+        ST_POINT,
         ST_MATCH_P1,
         ST_MATCH_P2
     } State;
