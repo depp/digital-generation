@@ -20,6 +20,7 @@ public:
     void draw(int n, float x, float y, float scale) const;
 
     static const Sprites CHARGE;
+    static const Sprites LV1;
 };
 
 }

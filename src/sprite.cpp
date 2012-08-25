@@ -43,3 +43,24 @@ static const Sprites::Sprite CHARGE_SPRITES[] = {
 
 const Sprites Sprites::CHARGE(
     256, 256, CHARGE_SPRITES, ALEN(CHARGE_SPRITES));
+
+static const Sprites::Sprite LV1_SPRITES[] = {
+{   4, 180,  44, 252,   4,   4 },
+{  44, 180,  84, 252,   4,   4 },
+{  84, 180, 124, 252,   4,   4 },
+{ 124, 180, 164, 252,   4,   4 },
+{ 164, 180, 204, 252,   4,   4 },
+{   4,  92,  44, 164,   4,   4 },
+{  44,  92,  84, 164,   4,   4 },
+{  84,  92, 124, 164,   4,   4 },
+{ 124,  92, 164, 164,   4,   4 },
+{ 164,  92, 204, 164,   4,   4 },
+{ 228, 156, 252, 252,   4,   4 },
+{ 228, 116, 252, 140,   4,   4 },
+{   4,  20,  44,  92,   4,   4 },
+{  52,  20, 172,  92,   4,   4 }
+};
+
+const Sprites Sprites::LV1(
+    256, 256, LV1_SPRITES, ALEN(LV1_SPRITES));
+
