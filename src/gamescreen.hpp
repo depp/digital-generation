@@ -21,11 +21,10 @@ private:
     UI::KeyManager m_key;
 
     void drawCharge(unsigned msec, int amt);
-    void advance();
+    unsigned getControls();
 
 public:
     static const int MAX_CHARGE = 20;
-    static const int FRAME_TIME = 10;
 
     GameScreen();
     virtual ~GameScreen();
