@@ -22,6 +22,7 @@ LBall::LBall(GameScreen &screen)
     m_state = ST_START;
     m_tick = 0;
     m_round = 0;
+    m_bounce = 0;
 
     m_paddlepos[0] = 0;
     m_paddlepos[1] = 0;
@@ -30,7 +31,7 @@ LBall::LBall(GameScreen &screen)
     m_ballvx = 0;
     m_ballvy = 0;
 
-    m_npoints[0] = 99;
+    m_npoints[0] = 0;
     m_npoints[1] = 0;
 
     advance(0, 0);
@@ -67,7 +68,10 @@ void LBall::advance(unsigned msec, int controls)
     case ST_START:
         if (m_tick > 1 * SECOND) {
             m_state = ST_PLAY;
-            m_ballvx = 512;
+            if ((m_npoints[0] + m_npoints[1]) & 1)
+                m_ballvx = -SPEED_MIN;
+            else
+                m_ballvx = SPEED_MIN;
             m_ballvy = (int) (Rand::girand() & 1023) - 512;
             if (m_round & 1)
                 m_ballvx = -m_ballvx;
@@ -93,6 +97,9 @@ void LBall::advance(unsigned msec, int controls)
         m_ballx = 0;
         m_bally = 0;
         m_state = ST_START;
+        m_bounce = 0;
+        m_ball.setPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+        break;
     }
 
     pm[0] = 0;
@@ -150,8 +157,14 @@ void LBall::advance(unsigned msec, int controls)
                 delta >= -CONTACT_HEIGHT/2)
             {
                 bounce = true;
-                m_ballvx = -m_ballvx;
-                m_ballvy = (delta * 512) / (CONTACT_HEIGHT / 2);
+                if (m_bounce < (SPEED_MAX - SPEED_MIN) / SPEED_STEP)
+                    m_bounce++;
+                int speed = SPEED_MIN + m_bounce * SPEED_STEP;
+                if (m_ballvx < 0)
+                    m_ballvx = speed;
+                else
+                    m_ballvx = -speed;
+                m_ballvy = (delta * speed) / (CONTACT_HEIGHT / 2);
             } else {
                 bounce = false;
                 if (paddle == 0) {
@@ -171,8 +184,6 @@ void LBall::advance(unsigned msec, int controls)
     }
     m_ball.moveTo(fix2i(m_ballx) + SCREEN_WIDTH / 2,
                   fix2i(m_bally) + SCREEN_HEIGHT / 2);
-    if (st == ST_START)
-        m_ball.update();
 
     for (int i = 0; i < 2; ++i) {
         m_paddle[i].update();

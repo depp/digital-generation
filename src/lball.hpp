@@ -23,6 +23,10 @@ private:
     static const int BALL_YMAX = AREA_YMAX - BALL_HEIGHT/2;
     static const int PADDLE_YMAX = AREA_YMAX - PADDLE_HEIGHT / 2;
 
+    static const int SPEED_MIN = 512;
+    static const int SPEED_MAX = SPEED_MIN * 3;
+    static const int SPEED_STEP = SPEED_MIN / 4;
+
     typedef enum {
         ST_INIT,
         ST_START,
@@ -48,6 +52,7 @@ private:
     State m_state;
     int m_tick;
     int m_round;
+    int m_bounce;
 
     int m_paddlepos[2];
     Sprite m_paddle[2];
