@@ -27,6 +27,11 @@ private:
     static const int SPEED_MAX = SPEED_MIN * 3;
     static const int SPEED_STEP = SPEED_MIN / 4;
 
+    static const int PLAYER_XSPEED = 512 * 4,
+        PLAYER_GRAVITY = 48,
+        PLAYER_MAXFALL = 1024,
+        PLAYER_JUMP = 512 * 6;
+
     typedef enum {
         ST_INIT,
         ST_START,
@@ -36,6 +41,14 @@ private:
         ST_MATCH_P1,
         ST_MATCH_P2
     } State;
+
+    typedef enum {
+        SS_BEGIN,
+        SS_CHAOS,
+        SS_SPIT,
+        SS_OUT,
+        SS_IN
+    } SState;
 
     typedef enum {
         FX_PNG,
@@ -49,10 +62,15 @@ private:
 
     static const int FX_COUNT = (int) FX_BOOM + 1;
 
+    unsigned m_lastctl;
+
     State m_state;
     int m_tick;
     int m_round;
     int m_bounce;
+
+    SState m_sstate;
+    int m_stick;
 
     int m_paddlepos[2];
     Sprite m_paddle[2];
@@ -65,10 +83,15 @@ private:
     int m_npoints[2];
     Sprite m_score[4];
 
+    int m_playx, m_playy;
+    int m_playvx, m_playvy;
+    Sprite m_player;
+
     Texture::Ref m_lv1;
 
     /* SOUND */
     AudioSource m_agame;
+    AudioSource m_aplayer;
     AudioFile::Ref m_fx[FX_COUNT];
     int m_sball;
 
@@ -82,7 +105,7 @@ public:
     LBall(GameScreen &screen);
     virtual ~LBall();
 
-    virtual void advance(unsigned msec, int controls);
+    virtual void advance(unsigned time, int controls);
 
     virtual void draw(int frac);
 };

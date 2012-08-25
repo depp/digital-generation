@@ -11,7 +11,8 @@ enum {
     SP_PADDLE = 10,
     SP_DOT = 11,
     SP_P = 12,
-    SP_WIN = 13
+    SP_WIN = 13,
+    SP_PLAYER = 14
 };
 
 LBall::LBall(GameScreen &screen)
@@ -19,10 +20,15 @@ LBall::LBall(GameScreen &screen)
 {
     m_lv1 = Texture::file("img/lv1");
 
+    m_lastctl = 0;
+
     m_state = ST_START;
     m_tick = 0;
     m_round = 0;
     m_bounce = 0;
+
+    m_sstate = SS_BEGIN;
+    m_stick = 0;
 
     m_paddlepos[0] = 0;
     m_paddlepos[1] = 0;
@@ -39,6 +45,7 @@ LBall::LBall(GameScreen &screen)
     m_state = ST_START;
 
     m_agame.open();
+    m_aplayer.open();
 
     static const char FX_NAME[FX_COUNT][5] = {
         "png", "bad", "good", "jmp", "land", "step", "boom"
@@ -55,12 +62,17 @@ LBall::LBall(GameScreen &screen)
 LBall::~LBall()
 { }
 
-void LBall::advance(unsigned msec, int controls)
+void LBall::advance(unsigned time, int controls)
 {
     int pm[2];
     State st = m_state;
+    SState sst = m_sstate;
+    unsigned ctl_delta = controls & ~m_lastctl;
+    m_lastctl = controls;
 
     m_tick += 1;
+    m_stick += 1;
+
     switch (st) {
     case ST_INIT:
         break;
@@ -102,30 +114,127 @@ void LBall::advance(unsigned msec, int controls)
         break;
     }
 
+    switch (sst) {
+    case SS_BEGIN:
+        if (m_stick > 1 * SECOND) {
+            m_stick = 0;
+            m_sstate = SS_CHAOS;
+        }
+        break;
+
+    case SS_CHAOS:
+        if (m_stick > 1 * SECOND)
+            goto spit;
+        break;
+
+    case SS_SPIT:
+        break;
+
+    case SS_OUT:
+        break;
+
+    case SS_IN:
+        if (ctl_delta & FLAG_ACTION)
+            goto spit;
+        break;
+
+    spit:
+        m_stick = 0;
+        m_sstate = SS_SPIT;
+        m_playx = -BALL_XMAX * 256;
+        m_playy = m_paddlepos[0] * 256;
+        m_playvx = 512 * 3;
+        m_playvy = 256;
+        m_player.setPos(fix2i(m_playx) + SCREEN_WIDTH / 2,
+                        fix2i(m_playy) + SCREEN_HEIGHT / 2);
+        m_aplayer.pset(AudioSource::PAN, time, -1.0f);
+        m_aplayer.play(time, *m_fx[FX_JMP], 0);
+        break;
+    }
+
     pm[0] = 0;
-    if (controls & FLAG_UP)
-        pm[0]++;
-    if (controls & FLAG_DOWN)
-        pm[0]--;
+    if (sst != SS_OUT && sst != SS_SPIT) {
+        if (controls & FLAG_UP)
+            pm[0] += 2;
+        if (controls & FLAG_DOWN)
+            pm[0] -= 2;
+    } else {
+        pm[0] = -1;
+    }
 
     pm[1] = 0;
     if (st == ST_PLAY) {
         int d = fix2i(m_bally) - m_paddlepos[1];
         if (d > 16)
-            pm[1] = 1;
+            pm[1] = 2;
         else if (d < -16)
-            pm[1] = -1;
+            pm[1] = -2;
     }
 
     for (int i = 0; i < 2; ++i) {
         if (!pm[i])
             continue;
-        m_paddlepos[i] += 2 * pm[i];
+        m_paddlepos[i] += pm[i];
         if (m_paddlepos[i] < -PADDLE_YMAX)
             m_paddlepos[i] = -PADDLE_YMAX;
         if (m_paddlepos[i] > PADDLE_YMAX)
             m_paddlepos[i] = PADDLE_YMAX;
     }
+
+    m_player.update();
+    if (sst == SS_OUT) {
+        m_playvx = 0;
+        if (controls & FLAG_LEFT)
+            m_playvx += -PLAYER_XSPEED;
+        else if (controls & FLAG_RIGHT)
+            m_playvx += PLAYER_XSPEED;
+    }
+    if (sst == SS_SPIT || sst == SS_OUT) {
+        int fx = -1;
+        m_playx += m_playvx;
+        if (m_playx >= BALL_XMAX * 256) {
+            m_playx = BALL_XMAX * 256;
+        } else if (m_playx <= -BALL_XMAX * 256) {
+            m_playx = -BALL_XMAX * 256;
+            int delta = fix2i(m_playy) - m_paddlepos[0];
+            if (delta >= -CONTACT_HEIGHT / 2 &&
+                delta <= CONTACT_HEIGHT / 2)
+            {
+                m_sstate = SS_IN;
+                fx = (int) FX_GOOD;
+            }
+        }
+
+        if (fx < 0) {
+            m_playy += m_playvy;
+            if (m_playy <= -BALL_YMAX * 256) {
+                if (m_playvy < 0) {
+                    fx = (int) FX_LAND;
+                    m_playvy = 0;
+                }
+                m_sstate = SS_OUT;
+                m_playy = -BALL_YMAX * 256;
+                if (ctl_delta & FLAG_UP) {
+                    fx = (int) FX_JMP;
+                    m_playvy = PLAYER_JUMP;
+                }
+            } else if (m_playy >= BALL_YMAX * 256) {
+                m_playy = BALL_YMAX * 256;
+                m_playvy = 0;
+            } else {
+                m_playvy -= PLAYER_GRAVITY;
+            }
+        }
+        if (fx >= 0) {
+            m_aplayer.stop(time);
+            m_aplayer.pset(AudioSource::PAN, time,
+                           (float) m_playx *
+                           (1.0f / (float) (256 * BALL_XMAX)));
+            m_aplayer.play(time, *m_fx[fx], 0);
+        }
+    }
+    m_player.moveTo(fix2i(m_playx) + SCREEN_WIDTH / 2,
+                    fix2i(m_playy) + SCREEN_HEIGHT / 2);
 
     m_ball.update();
     if (st == ST_PLAY) {
@@ -167,20 +276,30 @@ void LBall::advance(unsigned msec, int controls)
                 m_ballvy = (delta * speed) / (CONTACT_HEIGHT / 2);
             } else {
                 bounce = false;
+                int fx;
                 if (paddle == 0) {
                     m_state = ST_POINT_P2;
-                    m_agame.play(msec, *m_fx[FX_BAD], 0);
+                    fx = (int) FX_BAD;
+                    m_agame.play(time, *m_fx[FX_BAD], 0);
                     m_npoints[1] += 1;
                 } else {
                     m_state = ST_POINT_P1;
-                    m_agame.play(msec, *m_fx[FX_GOOD], 0);
+                    fx = (int) FX_BAD;
                     m_npoints[0] += 1;
                 }
+                m_agame.stop(time);
+                m_agame.pset(AudioSource::PAN, time, 0.0f);
+                m_agame.play(time, *m_fx[fx], 0);
             }
         }
 
-        if (bounce)
-            m_agame.play(msec, *m_fx[FX_PNG], 0);
+        if (bounce) {
+            m_agame.stop(time);
+            m_agame.pset(AudioSource::PAN, time,
+                         (float) m_ballx *
+                         (1.0f / (float) (256 * BALL_XMAX)));
+            m_agame.play(time, *m_fx[FX_PNG], 0);
+        }
     }
     m_ball.moveTo(fix2i(m_ballx) + SCREEN_WIDTH / 2,
                   fix2i(m_bally) + SCREEN_HEIGHT / 2);
@@ -259,6 +378,11 @@ void LBall::draw(int frac)
     pscore(pts + 2, m_npoints[1]);
     for (int i = 0; i < 4; ++i)
         m_score[i].draw(s, frac, SP_NUMBER + pts[i]);
+
+    if (m_sstate == SS_SPIT || m_sstate == SS_OUT) {
+        glColor3ub(250, 200, 15);
+        m_player.draw(s, frac, SP_PLAYER);
+    }
 
     glEnd();
     glDisable(GL_TEXTURE_2D);
