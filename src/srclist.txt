@@ -2,6 +2,10 @@ color.cpp
 color.hpp
 gamescreen.cpp
 gamescreen.hpp
+lball.cpp
+lball.hpp
+level.cpp
+level.hpp
 main.cpp
 sprite.cpp
 sprite.hpp

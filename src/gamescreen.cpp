@@ -2,26 +2,89 @@
 #include "sprite.hpp"
 #include "color.hpp"
 #include "text.hpp"
+#include "level.hpp"
+#include "lball.hpp"
 
+#include "client/ui/event.hpp"
 #include "client/viewport.hpp"
 #include "client/opengl.hpp"
 #include "client/bitmapfont.hpp"
+#include "client/keycode.hpp"
+
+static const unsigned LAG_THRESHOLD = 250;
 
 using namespace LD24;
 
+static const unsigned char KEY_MAP[] = {
+    KEY_W,      Level::CTL_UP,
+    KP_8,       Level::CTL_UP,
+    KEY_Up,     Level::CTL_UP,
+
+    KEY_A,      Level::CTL_LEFT,
+    KP_4,       Level::CTL_LEFT,
+    KEY_Left,   Level::CTL_LEFT,
+
+    KEY_S,      Level::CTL_DOWN,
+    KP_5,       Level::CTL_DOWN,
+    KEY_Down,   Level::CTL_DOWN,
+
+    KEY_D,      Level::CTL_RIGHT,
+    KP_6,       Level::CTL_RIGHT,
+    KEY_Right,  Level::CTL_RIGHT,
+
+    KEY_Space,  Level::CTL_ACTION,
+    KP_0,       Level::CTL_ACTION,
+
+    255
+};
 
 GameScreen::GameScreen()
+    : m_level(NULL),
+      m_init(false),
+      m_key(KEY_MAP)
 {
     m_letterbox.setISize(1280, 720);
     tex_charge = Texture::file("img/charge");
 }
 
 GameScreen::~GameScreen()
-{ }
+{
+    if (m_level)
+        delete m_level;
+}
+
+void GameScreen::advance()
+{
+    
+}
 
 void GameScreen::update(unsigned ticks)
 {
-    (void) ticks;
+    if (!m_init) {
+        m_tickref = ticks;
+        m_init = true;
+        m_delta = 0;
+
+        if (!m_level) {
+            m_level = 
+        }
+    } else {
+        unsigned delta = ticks - m_tickref;
+        if (delta > LAG_THRESHOLD) {
+            m_tickref = ticks;
+            m_delta = 0;
+        } else {
+            if (delta >= (unsigned) FRAME_TIME) {
+                unsigned frames = delta / FRAME_TIME;
+                m_tickref += frames * FRAME_TIME;
+                for (unsigned i = 0; i < frames; ++i)
+                    advance();
+                delta -= FRAME_TIME * frames;
+            }
+            m_delta = delta;
+        }
+    }
+
 }
 
 void GameScreen::drawCharge(unsigned msec, int amt)
@@ -75,5 +138,19 @@ void GameScreen::draw(Viewport &v, unsigned msec)
 
 void GameScreen::handleEvent(const UI::Event &evt)
 {
-    (void) &evt;
+    switch (evt.type) {
+    case UI::KeyDown:
+        /*
+        switch (evt.keyEvent().key) {
+        case KEY_F5:
+            break;
+        }
+        */
+    case UI::KeyUp:
+        m_key.handleKeyEvent(evt.keyEvent());
+        break;
+
+    default:
+        break;
+    }
 }
