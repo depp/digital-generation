@@ -36,8 +36,8 @@ private:
 
         NUM_WAVES = 3,
         SPAWN_TIME = SECOND * 3,
-        ALIEN_MINH = 160,
-        ALIEN_MAXH = LEVEL_MAXY - 64,
+        ALIEN_MINH = 192,
+        ALIEN_MAXH = SCREEN_HEIGHT / 2 - 32,
         ALIEN_SPEED = 256,
 
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
