@@ -78,7 +78,7 @@ LChase::~LChase()
 
 void LChase::startWave(int wave)
 {
-    int sp[6][2];
+    int sp[NUM_POS][2];
 
     assert(wave >= 0 && wave < NUM_WAVES);
     m_waveno = wave;
@@ -156,6 +156,49 @@ void LChase::startWave(int wave)
 void LChase::advance(unsigned time, int controls)
 {
     m_beat = (m_beat + 1) & 0xff;
+
+    // Advance the actors
+    for (int i = 0; i < NUM_ACTOR; ++i) {
+        int m = m_actor[i].move;
+        if (m >= 0) {
+            m++;
+            if (m == MOVE_TICKS) {
+                m_actor[i].x += m_actor[i].dx;
+                m_actor[i].y += m_actor[i].dy;
+                m_actor[i].dx = 0;
+                m_actor[i].dy = 0;
+                m = -1;
+            }
+        }
+        if (m > 0) {
+            m_actor[i].move = m;
+            continue;
+        }
+        int x = m_actor[i].x, y = m_actor[i].y;
+        int dx = 0, dy = 0;
+        if (i == 0) {
+            int cy = 0, cx = 0;
+            if (controls & FLAG_UP) cy += 1;
+            if (controls & FLAG_DOWN) cy -= 1;
+            if (controls & FLAG_RIGHT) cx += 1;
+            if (controls & FLAG_LEFT) cx -= 1;
+            if (cy && (m_board.get(x, y + cy) & T_PASS) != 0)
+                dy = cy;
+            else if (cx && (m_board.get(x + cx, y) & T_PASS) != 0)
+                dx = cx;
+        } else {
+            
+        }
+        std::printf("dx %d dy %d\n", dx, dy);
+        if (dx || dy) {
+            m_actor[i].move = 0;
+            m_actor[i].dx = dx;
+            m_actor[i].dy = dy;
+        } else {
+            m_actor[i].move = -1;
+        }
+    }
+
     (void) time;
     (void) controls;
 }

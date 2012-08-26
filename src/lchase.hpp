@@ -20,7 +20,7 @@ public:
 
         int get(int x, int y)
         {
-            if (x < 0 || x >= WIDTH || y < 0 || y >= WIDTH)
+            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
                 return 0;
             return tiles[y][x];
         }
