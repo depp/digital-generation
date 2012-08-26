@@ -149,12 +149,11 @@ void GameScreen::handleEvent(const UI::Event &evt)
 {
     switch (evt.type) {
     case UI::KeyDown:
-        /*
         switch (evt.keyEvent().key) {
         case KEY_F5:
+            nextLevel();
             break;
         }
-        */
     case UI::KeyUp:
         m_key.handleKeyEvent(evt.keyEvent());
         break;
