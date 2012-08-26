@@ -26,7 +26,7 @@ private:
         GRAVITY = 32,
         MAX_FALL = 512,
         PLAYER_MX = 256 * 2,
-        PLAYER_MY = 256 * 6,
+        PLAYER_MY = 256 * 5,
         PLAYER_ERG = PLAYER_MX / 8;
 
     enum {
