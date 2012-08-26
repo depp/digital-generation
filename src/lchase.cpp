@@ -7,6 +7,8 @@
 #include <cstdlib>
 using namespace LD24;
 
+#define CHEAT 1
+
 void LChase::Board::clear()
 {
     std::memset(tiles, 0, sizeof(tiles));
@@ -15,33 +17,17 @@ void LChase::Board::clear()
 static const char CHASE_LEVELS
 [LChase::NUM_WAVES][LChase::HEIGHT][LChase::WIDTH+1] = {
 {
-#if 0
-    /* Try to reproduce a crash...  All I remember is that I saw two
-       monsters reach the same position at a T.  */
-    " M    E*            ",
-    " ==== ==            ",
-    "    |               ",
-    "    | P             ",
-    "    ===             ",
-    "    |               ",
-    " M  |               ",
-    " ====               ",
+    "   *  EM            ",
+    "   ========         ",
+    "    |   *|          ",
+    "    |   =========   ",
+    "    |*   |   * |    ",
+    "======   |   =======",
+    "  |      |    |     ",
+    "  |    P |    |     ",
+    "  ==============    ",
     "                    ",
-    "                    ",
-    "                    ",
-#else
-    "  *   M    *   M    ",
-    "====================",
-    "    |     |      |  ",
-    "    |     |      |  ",
-    "    | *  ====    |  ",
-    "  =====  |  |  * |  ",
-    "  |   |  |  ======  ",
-    "  |   |  |     |    ",
-    "  |   ====     |    ",
-    " P|    |    *  |  E ",
-    "====================",
-#endif
+    "                    "
 }, {
     "  E  M              ",
     " ==========         ",
@@ -66,6 +52,18 @@ static const char CHASE_LEVELS
     "     |  P   |       ",
     "     ========       ",
     "                    "
+}, {
+    "  *   M    *   M    ",
+    "====================",
+    "    |     |      |  ",
+    "    |     |      |  ",
+    "    | *  ====    |  ",
+    "  =====  |  |  * |  ",
+    "  |   |  |  ======  ",
+    "  |   |  |     |    ",
+    "  |   ====     |    ",
+    " P|    |    *  |  E ",
+    "====================",
 }
 };
 
@@ -335,6 +333,9 @@ void LChase::advance(unsigned time, int controls)
 {
     m_beat = (m_beat + 1) & 0xff;
 
+    if (CHEAT && !m_beat && (controls & FLAG_ACTION))
+        startWave(m_waveno + 1);
+
     switch (m_state) {
     case ST_BEGIN_UNPRESS:
     case ST_BEGIN:
@@ -499,7 +500,7 @@ void LChase::draw(int frac)
     if (m_state == ST_BEGIN || m_state == ST_BEGIN_UNPRESS)
         visible = beat == 1;
     if (visible) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < m_num_monster + 1; ++i) {
             Pos p = m_actor[i].curPos(frac2);
             int s;
             if (i == 0)

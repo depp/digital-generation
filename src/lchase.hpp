@@ -12,7 +12,7 @@ namespace LD24 {
 class LChase : public Level {
 public:
     static const int WIDTH = 20, HEIGHT = 11,
-        NUM_WAVES = 3;
+        NUM_WAVES = 4;
 
     static Pos movePos(Pos p, int dir)
     {
