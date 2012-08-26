@@ -228,18 +228,16 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
         break;
 
     case TYPE_PLAYER:
-        if (!player && m_player) {
+        if (!player && m_player && m_state != ST_DEAD) {
             m_state = ST_DEAD;
             m_aplayer.stop(time);
             m_aplayer.play(time, *m_fx[FX_LOSE], 0);
-            m_player->vx = 0;
-            m_player = NULL;
-            m_tank = NULL;
+            m_state_time = RESPAWN_TIME;
         }
         break;
 
     case TYPE_TANK:
-        if (!player && !m_player && m_tank) {
+        if (!player && !m_player && m_tank && m_state == ST_TANK) {
             fx = FX_BOOM1;
             m_state = ST_WALK_AGAIN;
             m_tank->vx = 0;
@@ -399,6 +397,12 @@ void LInvade::alienShoot(unsigned time, int a) {
 
 void LInvade::advance(unsigned time, int controls)
 {
+    if (m_state == ST_DEAD) {
+        controls = 0;
+        if (m_state_time && !--m_state_time)
+            initlevel();
+    }
+
     int camTarget = m_camx;
     if (m_pshottime)
         m_pshottime -= 1;
@@ -468,16 +472,20 @@ void LInvade::advance(unsigned time, int controls)
 
     {
         m_campx = m_camx;
-        int delta = camTarget - m_camx;
-        if (0)
-            std::printf("camx: %d; target: %d; delta %d\n",
-                        m_camx, camTarget, delta);
         bool movecamera = false;
-        if (delta > CAMERA_DX) {
-            camTarget -= CAMERA_DX;
-            movecamera = true;
-        } else if (delta < -CAMERA_DX) {
-            camTarget += CAMERA_DX;
+        if (0) {
+            int delta = camTarget - m_camx;
+            if (0)
+                std::printf("camx: %d; target: %d; delta %d\n",
+                            m_camx, camTarget, delta);
+            if (delta > CAMERA_DX) {
+                camTarget -= CAMERA_DX;
+                movecamera = true;
+            } else if (delta < -CAMERA_DX) {
+                camTarget += CAMERA_DX;
+                movecamera = true;
+            }
+        } else {
             movecamera = true;
         }
         if (movecamera) {

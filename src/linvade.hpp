@@ -28,6 +28,7 @@ private:
         PLAYER_MX = 256 * 1,
         PLAYER_MY = 128 * 5,
         PLAYER_ERG = PLAYER_MX / 8,
+        RESPAWN_TIME = SECOND * 3,
 
         TANK_DX = 256 * 3/2,
         TANK_SHOTTIME = SECOND / 3,
