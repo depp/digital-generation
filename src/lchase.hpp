@@ -62,7 +62,9 @@ public:
         T_LADDER = 2,
         T_PLATFORM = 4,
         T_ITEM = 8,
-        T_DOOR = 16
+        T_DOOR = 16,
+        T_PLAYER = 32,
+        T_MONSTER = 64
     };
 
     enum {
@@ -100,6 +102,10 @@ private:
 
     void startWave(int wave);
     void findPath(int monster);
+
+    void actionGet(unsigned time);
+    void actionLose(unsigned time);
+    void actionWin(unsigned time);
 
 public:
     LChase(GameScreen &screen);

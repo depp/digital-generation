@@ -149,7 +149,7 @@ void LChase::startWave(int wave)
         m_actor[i].dy = 0;
     }
 
-    m_state = ST_BEGIN;
+    m_state = ST_COLLECT;
     m_state_time = 0;
 
     for (int i = 0; i < NUM_MONSTER; ++i) {
@@ -292,7 +292,29 @@ void LChase::findPath(int monster)
         path.delay = SECOND/4;
     }
 }
+void LChase::actionGet(unsigned time)
+{
+    if (m_state != ST_COLLECT)
+        return;
+    m_audio.stop(time);
+    m_audio.play(time, *m_fx[FX_GET], 0);
+}
 
+void LChase::actionLose(unsigned time)
+{
+    if (m_state != ST_COLLECT)
+        return;
+    m_audio.stop(time);
+    m_audio.play(time, *m_fx[FX_LOSE], 0);
+}
+
+void LChase::actionWin(unsigned time)
+{
+    if (m_state != ST_COLLECT)
+        return;
+    m_audio.stop(time);
+    m_audio.play(time, *m_fx[FX_WIN], 0);
+}
 
 void LChase::advance(unsigned time, int controls)
 {
@@ -301,21 +323,34 @@ void LChase::advance(unsigned time, int controls)
     // Advance the actors
     for (int i = 0; i < NUM_ACTOR; ++i) {
         int m = m_actor[i].move;
+        int x = m_actor[i].x, y = m_actor[i].y;
         if (m >= 0) {
             m++;
             if (m == MOVE_TICKS) {
-                // m_actor[i].x;
-                // m_actor[i].y;
                 m_actor[i].dx = 0;
                 m_actor[i].dy = 0;
                 m = -1;
+            } else if (m == (MOVE_TICKS+1)/2) {
+                int c = m_board.tiles[y][x];
+                if (i == 0) {
+                    if (c & T_MONSTER) {
+                        actionLose(time);
+                    } else if (c & T_ITEM) {
+                        m_board.tiles[y][x] = c & ~T_ITEM;
+                        actionGet(time);
+                    } else if (c & T_DOOR) {
+                        actionWin(time);
+                    }
+                } else {
+                    if (c & T_PLAYER)
+                        actionLose(time);
+                }
             }
         }
         if (m > 0) {
             m_actor[i].move = m;
             continue;
         }
-        int x = m_actor[i].x, y = m_actor[i].y;
         int dx = 0, dy = 0;
         if (i == 0) {
             int cy = 0, cx = 0;
@@ -342,9 +377,14 @@ void LChase::advance(unsigned time, int controls)
             }
         }
         if (dx || dy) {
+            int mask = (i == 0) ? T_PLAYER : T_MONSTER;
+            m_board.tiles[y][x] &= ~mask;
+            x += dx;
+            y += dy;
+            m_board.tiles[y][x] |= mask;
             m_actor[i].move = 0;
-            m_actor[i].x += dx;
-            m_actor[i].y += dy;
+            m_actor[i].x = x;
+            m_actor[i].y = y;
             m_actor[i].dx = dx;
             m_actor[i].dy = dy;
         } else {
