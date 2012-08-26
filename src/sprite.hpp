@@ -99,9 +99,13 @@ enum {
     PLAT,
     LADDER,
     PLAYER,
+    PLAYERX,
     MON1,
+    MON1X,
     MON2,
+    MON2X,
     MON3,
+    MON3X,
 
     COUNT
 };

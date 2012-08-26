@@ -72,6 +72,8 @@ LChase::~LChase()
 
 void LChase::startWave(int wave)
 {
+    int sp[6][2];
+
     assert(wave >= 0 && wave < NUM_WAVES);
     m_waveno = wave;
 
@@ -96,8 +98,8 @@ void LChase::startWave(int wave)
             case '*':
                 assert(npos < NUM_POS);
                 assert(out & T_PASS);
-                m_starpos[npos][0] = x;
-                m_starpos[npos][1] = y;
+                sp[npos][0] = x;
+                sp[npos][1] = y;
                 npos++;
                 break;
 
@@ -121,13 +123,24 @@ void LChase::startWave(int wave)
     for (int i = 1; i < NUM_POS; ++i) {
         int j = Rand::girand() % (i + 1);
         if (i != j) {
-            int x = m_starpos[i][0];
-            int y = m_starpos[i][1];
-            m_starpos[i][0] = m_starpos[j][0];
-            m_starpos[i][1] = m_starpos[j][1];
-            m_starpos[j][0] = x;
-            m_starpos[j][1] = y;
+            int x = sp[i][0];
+            int y = sp[i][1];
+            sp[i][0] = sp[j][0];
+            sp[i][1] = sp[j][1];
+            sp[j][0] = x;
+            sp[j][1] = y;
         }
+    }
+
+    m_tiles[sp[0][0]][sp[0][1]] |= T_ITEM;
+    m_tiles[sp[1][0]][sp[1][1]] |= T_ITEM;
+    m_tiles[sp[2][0]][sp[2][1]] |= T_DOOR;
+    for (int i = 0; i < 3; ++i) {
+        m_actor[i].move = -1;
+        m_actor[i].x = sp[3+i][0];
+        m_actor[i].y = sp[3+i][1];
+        m_actor[i].dx = 0;
+        m_actor[i].dy = 0;
     }
 
     m_state = ST_BEGIN;
@@ -166,7 +179,25 @@ void LChase::draw(int frac)
                 sp.draw(LV2::LADDER, x * 16, y * 16);
             if (c & T_PLATFORM)
                 sp.draw(LV2::PLAT, x * 16, y * 16);
+            if (c & T_ITEM)
+                sp.draw(LV2::KEY, x * 16, y * 16);
+            if (c & T_DOOR)
+                sp.draw(LV2::DOOR, x * 16, y * 16);
         }
+    }
+    for (int i = 0; i < 3; ++i) {
+        int x = m_actor[i].x * 16, y = m_actor[i].y * 16;
+        if (m_actor[i].move >= 0) {
+            int frac2 = frac + m_actor[i].move * FRAME_TIME;
+            x += (m_actor[i].dx * frac2) / (FRAME_TIME * MOVE_TICKS);
+            y += (m_actor[i].dy * frac2) / (FRAME_TIME * MOVE_TICKS);
+        }
+        int s;
+        if (i == 0)
+            s = LV2::PLAYER;
+        else
+            s = LV2::MON1 + m_waveno * 2;
+        sp.draw(s, x, y);
     }
     glEnd();
 

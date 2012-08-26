@@ -13,6 +13,11 @@ public:
     static const int WIDTH = 20, HEIGHT = 11,
         NUM_WAVES = 3, NUM_POS = 6;
 
+    static const int NUM_MONSTER = 2,
+        NUM_KEY = 2, NUM_ACTOR = NUM_MONSTER + 1;
+
+    static const int MOVE_TICKS = 25;
+
     typedef enum {
         ST_BEGIN,
         ST_COLLECT,
@@ -38,6 +43,14 @@ public:
 
     static const int FX_COUNT = FX_GET + 1;
 
+    struct Actor {
+        // -1: not moving
+        // 0..MOVE_TICKS-1 -- moving
+        int move;
+        unsigned char x, y;
+        signed char dx, dy;
+    };
+
 private:
     // GLOBAL (not reset by a wave)
     Texture::Ref m_tlv2;
@@ -47,10 +60,11 @@ private:
 
     // LOCAL (reset when a wave is started)
     unsigned char m_tiles[WIDTH][HEIGHT];
-    int m_starpos[NUM_POS][2];
 
     GameState m_state;
     int m_state_time;
+
+    Actor m_actor[NUM_ACTOR];
 
     void startWave(int wave);
 
