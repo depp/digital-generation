@@ -2,7 +2,6 @@
 #include "defs.hpp"
 #include "gamescreen.hpp"
 #include "sprite.hpp"
-#include "color.hpp"
 #include "text.hpp"
 #include "level.hpp"
 #include "lball.hpp"

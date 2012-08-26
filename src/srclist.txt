@@ -1,5 +1,3 @@
-color.cpp
-color.hpp
 defs.hpp
 gamescreen.cpp
 gamescreen.hpp
