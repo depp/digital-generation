@@ -503,7 +503,7 @@ void LChase::draw(int frac)
             if (i == 0)
                 s = LV2::PLAYER;
             else
-                s = LV2::MON1 + m_waveno * 2;
+                s = LV2::MON1 + (m_waveno % 3) * 2;
             s += beat;
             y -= 1;
             sp.draw(s, x, y);
