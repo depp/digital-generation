@@ -57,6 +57,35 @@ struct Pos {
         default: return Pos(0, 0);
         }
     }
+
+    Pos operator+(const Pos &o) const
+    {
+        return Pos(x + o.x, y + o.y);
+    }
+
+    Pos operator-(const Pos &o) const
+    {
+        return Pos(x - o.x, y - o.y);
+    }
+
+    Pos &operator+=(const Pos &o)
+    {
+        x += o.x;
+        y += o.y;
+        return *this;
+    }
+
+    Pos &operator-=(const Pos &o)
+    {
+        x -= o.x;
+        y -= o.y;
+        return *this;
+    }
+
+    operator bool() const
+    {
+        return x != 0 || y != 0;
+    }
 };
 
 }

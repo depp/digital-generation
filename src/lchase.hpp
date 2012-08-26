@@ -6,6 +6,7 @@
 #include "sprite.hpp"
 #include "client/audio.hpp"
 #include "client/texture.hpp"
+#include <assert.h>
 namespace LD24 {
 
 class LChase : public Level {
@@ -13,16 +14,50 @@ public:
     static const int WIDTH = 20, HEIGHT = 11,
         NUM_WAVES = 3;
 
-    struct Board {
+    static Pos movePos(Pos p, int dir)
+    {
+        return clipPos(p + Pos::fromDir(dir));
+    }
+
+    static Pos clipPos(Pos p)
+    {
+        if (p.x >= WIDTH)
+            p.x -= WIDTH;
+        else if (p.x < 0)
+            p.x += WIDTH;
+        return p;
+    }
+
+    class Board {
         unsigned char tiles[HEIGHT][WIDTH];
 
+    public:
         void clear();
 
-        int get(int x, int y)
+        int get(int x, int y) const
         {
-            if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT)
+            if (x < 0) x += WIDTH;
+            else if (x >= WIDTH) x -= WIDTH;
+            if (y < 0 || y >= HEIGHT)
                 return 0;
             return tiles[y][x];
+        }
+
+        int get(const Pos &p) const
+        {
+            return get(p.x, p.y);
+        }
+
+        unsigned char &operator[](const Pos &p)
+        {
+            assert(p.x >= 0 && p.x < WIDTH && p.y >= 0 && p.y < HEIGHT);
+            return tiles[p.y][p.x];
+        }
+
+        unsigned char operator[](const Pos &p) const
+        {
+            assert(p.x >= 0 && p.x < WIDTH && p.y >= 0 && p.y < HEIGHT);
+            return tiles[p.y][p.x];
         }
     };
 
@@ -42,7 +77,8 @@ public:
         static const int LEN = 16;
         int delay;
         int pos, count;
-        signed char moves[LEN][2];
+        // moves are deltas
+        Pos moves[LEN];
     };
 
     static const int MAX_MONSTER = 4,
@@ -84,17 +120,30 @@ public:
         // -1: not moving
         // 0..MOVE_TICKS-1 -- moving
         int move;
-        unsigned char x, y;
-        signed char dx, dy;
+        Pos pos;
+        Pos delta;
 
+        // Get current pos in screen coordinates
         Pos curPos() const
         {
-            if (move >= 0)
-                return Pos(
-                    16*(x-dx) + (16 * dx * move) / MOVE_TICKS,
-                    16*(y-dy) + (16 * dy * move) / MOVE_TICKS);
-            else
-                return Pos(x * 16, y * 16);
+            if (move < 0)
+                return Pos(16 * pos.x, 16 * pos.y);
+            int a = 16 * move;
+            return Pos(
+                16 * (pos.x - delta.x) + (delta.x * a) / MOVE_TICKS,
+                16 * (pos.y - delta.y) + (delta.y * a) / MOVE_TICKS);
+        }
+
+        // Get current pos in screen coordinates
+        Pos curPos(int frac) const
+        {
+            if (move < 0)
+                return Pos(16 * pos.x, 16 * pos.y);
+            int a = 16 * (move * FRAME_TIME + frac);
+            int b = MOVE_TICKS * FRAME_TIME;
+            return Pos(
+                16 * (pos.x - delta.x) + (delta.x * a) / b,
+                16 * (pos.y - delta.y) + (delta.y * a) / b);
         }
     };
 
