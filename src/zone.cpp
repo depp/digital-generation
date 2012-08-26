@@ -139,39 +139,47 @@ void Zone::testcol(EMover &e, ECollide &o)
         return;
     int mx = dx > 0 ? dx : -dx, my = dy > 0 ? dy : -dy;
     Dir dir;
-    if (rx - mx > ry - my) {
-        dir = dx > 0 ? DIR_RIGHT : DIR_LEFT;
-    } else {
-        dir = dy > 0 ? DIR_UP : DIR_DOWN;
-    }
     bool fixed = false;
+    // First, try to backtrack horizontally to a collision point
     if (e.px < e.x) {
         if (e.px <= o.x - rx) {
             e.x = o.x - rx;
             e.hx = e.x * 256;
             fixed = true;
+            dir = DIR_RIGHT;
         }
     } else if (e.px > e.x) {
         if (e.px >= o.x + rx) {
             e.x = o.x + rx;
             e.hx = e.x * 256;
             fixed = true;
+            dir = DIR_LEFT;
         }
     }
+    // Then try backtracking vertically 
     if (!fixed) {
         if (e.py < e.y) {
             if (e.py <= o.y - ry) {
                 e.y = o.y - ry;
                 e.hy = e.y * 256;
                 fixed = true;
+                dir = DIR_UP;
             }
         } else if (e.py > e.y) {
             if (e.py >= o.y + ry) {
                 e.y = o.y + ry;
                 e.hy = e.y * 256;
                 fixed = true;
+                dir = DIR_DOWN;
             }
         }
+    }
+    // Backtracking doesn't help, give up
+    if (!fixed) {
+        if (rx - mx > ry - my)
+            dir = dx > 0 ? DIR_RIGHT : DIR_LEFT;
+        else
+            dir = dy > 0 ? DIR_UP : DIR_DOWN;
     }
     // std::puts("collision");
     m_collision.push_back(Collision(&e, &o, dir));
