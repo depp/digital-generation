@@ -5,6 +5,8 @@ gamescreen.cpp
 gamescreen.hpp
 lball.cpp
 lball.hpp
+lchase.cpp
+lchase.hpp
 level.cpp
 level.hpp
 linvade.cpp

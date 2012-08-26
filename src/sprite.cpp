@@ -84,6 +84,22 @@ static const SpriteSheet::Sprite LV1_SPRITES[] = {
 const SpriteSheet SpriteSheet::LV1(
     256, 256, LV1_SPRITES, ALEN(LV1_SPRITES));
 
+static const SpriteSheet::Sprite LV2_SPRITES[LV2::COUNT] = {
+    {  0, 16, 16, 32, 0, 0 },
+    { 16, 16, 32, 32, 0, 0 },
+    { 32, 16, 48, 32, 0, 0 },
+    { 48, 16, 64, 32, 0, 0 },
+    {  0,  0, 16, 16, 0, 0 },
+    { 16,  0, 32, 16, 0, 0 },
+    { 32,  0, 48, 16, 0, 0 },
+    { 48,  0, 64, 16, 0, 0 }
+};
+
+const char LV2::TEXNAME[] = "img/lv2";
+
+const SpriteSheet LV2::SPRITES(
+    64, 32, LV2_SPRITES, ALEN(LV2_SPRITES));
+
 static const SpriteSheet::Sprite LV3_SPRITES[LV3::COUNT] = {
 {   0,   0,  64,  64,  32,  32 }, // base
 {   0,  64,  64,  96,  32,  16 }, // bunk1

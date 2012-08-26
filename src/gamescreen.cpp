@@ -7,6 +7,7 @@
 #include "level.hpp"
 #include "lball.hpp"
 #include "linvade.hpp"
+#include "lchase.hpp"
 
 #include "client/ui/event.hpp"
 #include "client/viewport.hpp"
@@ -72,7 +73,8 @@ void GameScreen::update(unsigned ticks)
     if (!m_init) {
         if (!m_level) {
             // m_level = new LBall(*this);
-            m_level = new LInvade(*this);
+            m_level = new LChase(*this);
+            // m_level = new LInvade(*this);
         }
 
         m_tickref = ticks;
