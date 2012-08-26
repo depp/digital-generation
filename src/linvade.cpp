@@ -10,16 +10,35 @@ LInvade::LInvade(GameScreen &screen)
 {
     m_tlv3 = Texture::file(LV3::TEXNAME);
 
+    initlevel();
+}
+
+void LInvade::spawnplayer(int x, int y)
+{
+    if (m_eplayer) {
+        m_eplayer->is_active = false;
+        m_eplayer = NULL;
+    }
+    Zone::EMover *e = m_zone.newmover(LV3::PLYR1, 999, x, y);
+    if (!e)
+        return;
+    m_eplayer = e;
+    e->type = TYPE_PLAYER;
+    e->id = 0;
+    e->w = 16;
+    e->h = 32;
+    e->mat_mask = 1;
+    e->col_mask = 1;
+    m_standing = false;
+}
+
+void LInvade::initlevel()
+{
     m_eplayer = NULL;
     m_etank = NULL;
     for (int i = 0; i < ALIEN_COUNT; ++i)
         m_ealien[i] = NULL;
 
-    initlevel();
-}
-
-void LInvade::initlevel()
-{
     m_zone.reset(
         TEMP_LIMIT,
         BARRIER_COUNT + 1,
@@ -48,22 +67,7 @@ void LInvade::initlevel()
         e->mat_mask = 1;
     }
 
-    {
-        Zone::EMover *e;
-        m_eplayer = e = m_zone.newmover(
-            LV3::PLYR1, 999, LEVEL_MINX + 32, LEVEL_MINY + 48);
-        if (!e)
-            return;
-        e->type = TYPE_PLAYER;
-        e->id = 0;
-        e->w = 16;
-        e->h = 32;
-        e->mat_mask = 1;
-        e->col_mask = 1;
-    }
-
-    m_etank = NULL;
-    m_standing = false;
+    spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 48);
 }
 
 LInvade::~LInvade()
@@ -94,7 +98,7 @@ void LInvade::advance(unsigned time, int controls)
         if (dvx > PLAYER_ERG)
             dvx = PLAYER_ERG;
         m_eplayer->vx += dvx;
-        int ptick = (time >> 8) & 1;
+        int ptick = (time >> 7) & 1;
         if (m_standing) {
             if (m_eplayer->vx > 0)
                 m_eplayer->sprite = LV3::PLYL1 + ptick;
@@ -145,6 +149,8 @@ void LInvade::draw(int frac)
     glClearColor(0.02, 0.03, 0.09, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glPushMatrix();
+    glScalef(2.0f, 2.0f, 2.0f);
     glEnable(GL_TEXTURE_2D);
     m_tlv3->bind();
     glEnable(GL_BLEND);
@@ -163,6 +169,7 @@ void LInvade::draw(int frac)
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
+    glPopMatrix();
 
     (void) frac;
 }

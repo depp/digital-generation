@@ -48,6 +48,7 @@ private:
     Zone::EMover *m_eplayer, *m_etank, *m_ealien[ALIEN_COUNT];
 
     void initlevel();
+    void spawnplayer(int x, int y);
 
 public:
     LInvade(GameScreen &screen);
