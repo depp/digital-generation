@@ -3,6 +3,20 @@
 #include "client/rand.hpp"
 #include <cstdio>
 using namespace LD24;
+using std::vector;
+
+LInvade::LInvade(GameScreen &screen)
+    : Level(screen)
+{
+    m_tlv3 = Texture::file(LV3::TEXNAME);
+
+    m_eplayer = NULL;
+    m_etank = NULL;
+    for (int i = 0; i < ALIEN_COUNT; ++i)
+        m_ealien[i] = NULL;
+
+    initlevel();
+}
 
 void LInvade::initlevel()
 {
@@ -13,12 +27,13 @@ void LInvade::initlevel()
     m_zone.setBounds(
         LEVEL_MINX, LEVEL_MAXX, LEVEL_MINY, LEVEL_MAXY);
 
+    int barrier_step = (LEVEL_MAXX - LEVEL_MINX) / (BARRIER_COUNT + 2);
     for (int i = 0; i < BARRIER_COUNT; ++i) {
         unsigned r = Rand::girand();
         int h = ((r >> 4) & 127) + 64;
         int x = (r >> 12) & 255;
         int y = (r >> 20) & 255;
-        x = (x - 128) / 4 + 128 + 256 * i;
+        x = (x - 128) / 4 + barrier_step / 2 + barrier_step * i;
         // std::printf("y = %d\n", y);
         y = y/4 + 64;
         
@@ -48,19 +63,7 @@ void LInvade::initlevel()
     }
 
     m_etank = NULL;
-}
-
-LInvade::LInvade(GameScreen &screen)
-    : Level(screen)
-{
-    m_tlv3 = Texture::file(LV3::TEXNAME);
-
-    m_eplayer = NULL;
-    m_etank = NULL;
-    for (int i = 0; i < ALIEN_COUNT; ++i)
-        m_ealien[i] = NULL;
-
-    initlevel();
+    m_standing = false;
 }
 
 LInvade::~LInvade()
@@ -75,9 +78,64 @@ void LInvade::advance(unsigned time, int controls)
         m_eplayer->vy -= GRAVITY;
         if (m_eplayer->vy < -MAX_FALL)
             m_eplayer->vy = -MAX_FALL;
+        if (m_standing && (controls & FLAG_UP)) {
+            m_eplayer->vy = PLAYER_MY;
+        }
+
+        int ergx = 0;
+        if (controls & FLAG_LEFT)
+            ergx -= 256;
+        else if (controls & FLAG_RIGHT)
+            ergx += 256;
+        int tvx = fix2i(ergx * PLAYER_MX);
+        int dvx = tvx - m_eplayer->vx;
+        if (dvx < -PLAYER_ERG)
+            dvx = -PLAYER_ERG;
+        if (dvx > PLAYER_ERG)
+            dvx = PLAYER_ERG;
+        m_eplayer->vx += dvx;
+        int ptick = (time >> 8) & 1;
+        if (m_standing) {
+            if (m_eplayer->vx > 0)
+                m_eplayer->sprite = LV3::PLYL1 + ptick;
+            else if (m_eplayer->vx < 0)
+                m_eplayer->sprite = LV3::PLYR1 + ptick;
+        }
     }
 
+    m_standing = false;
     m_zone.advance();
+
+    {
+        const vector<Zone::Collision> &cols = m_zone.collisions();
+        for (vector<Zone::Collision>::const_iterator
+                 i = cols.begin(), e = cols.end();
+             i != e; ++i)
+        {
+            Zone::EMover &e = *i->ent;
+            // Zone::ECollide *o = i->other;
+            switch (e.type) {
+            case TYPE_PLAYER:
+                switch (i->dir) {
+                case Zone::DIR_DOWN:
+                    m_standing = true;
+                    if (e.vy < 0)
+                        e.vy = 0;
+                    // PLAY SOUND
+                    break;
+
+                case Zone::DIR_UP:
+                    if (e.vy > 0)
+                        e.vy = 0;
+                    break;
+
+                default:
+                    break;
+                }
+                break;
+            }
+        }
+    }
 }
 
 void LInvade::draw(int frac)

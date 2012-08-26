@@ -23,10 +23,11 @@ private:
         LEVEL_MINY = 32,
         LEVEL_MAXY = 720,
 
-        GRAVITY = 64,
+        GRAVITY = 32,
         MAX_FALL = 512,
-        PLAYER_MX = 256,
-        PLAYER_MY = 256;
+        PLAYER_MX = 256 * 2,
+        PLAYER_MY = 256 * 6,
+        PLAYER_ERG = PLAYER_MX / 8;
 
     enum {
         TYPE_BUNKER,
@@ -41,6 +42,8 @@ private:
 
     Texture::Ref m_tlv3;
     Zone m_zone;
+
+    bool m_standing;
 
     Zone::EMover *m_eplayer, *m_etank, *m_ealien[ALIEN_COUNT];
 
