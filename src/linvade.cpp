@@ -2,6 +2,7 @@
 #include "linvade.hpp"
 #include "client/rand.hpp"
 #include <cstdio>
+#include <cstring>
 using namespace LD24;
 using std::vector;
 
@@ -9,6 +10,22 @@ LInvade::LInvade(GameScreen &screen)
     : Level(screen)
 {
     m_tlv3 = Texture::file(LV3::TEXNAME);
+
+    static const char FX_NAME[FX_COUNT][8] = {
+        "alien1", "alien2", "alien3", "boom1", "boom2", "click",
+        "donk", "fanfare", "lose", "plink", "shot"
+    };
+
+    for (int i = 0; i < FX_COUNT; ++i) {
+        char name[16];
+        std::strcpy(name, "fx/3_");
+        std::strcat(name, FX_NAME[i]);
+        m_fx[i] = AudioFile::file(name);
+    }
+
+    m_aplayer.open();
+    m_aalien.open();
+    m_afx.open();
 
     initlevel();
 }
@@ -27,8 +44,8 @@ void LInvade::spawnplayer(int x, int y)
     e->id = 0;
     e->w = 16;
     e->h = 32;
-    e->mat_mask = 1;
-    e->col_mask = 1;
+    e->mat_mask = MAT_SOLID;
+    e->col_mask = MAT_SOLID;
     m_standing = false;
 }
 
@@ -68,7 +85,17 @@ void LInvade::initlevel()
         e->id = i;
         e->w = 64;
         e->h = 32;
-        e->mat_mask = 1;
+        e->mat_mask = MAT_SOLID;
+    }
+
+    {
+        Zone::ECollide *e = m_zone.newstatic(
+            LV3::BASE, 999, LEVEL_MAXX - 64, LEVEL_MINY + 32);
+        e->type = TYPE_BASE;
+        e->id = 0;
+        e->w = 64;
+        e->h = 64;
+        e->mat_mask = MAT_SOLID;
     }
 
     spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
@@ -156,6 +183,9 @@ void LInvade::advance(unsigned time, int controls)
                 switch (i->dir) {
                 case Zone::DIR_DOWN:
                     m_standing = true;
+                    if (e.vy < -256) {
+                        m_aplayer.play(time, *m_fx[FX_CLICK], 0);
+                    }
                     if (e.vy < 0)
                         e.vy = 0;
                     // PLAY SOUND

@@ -34,6 +34,10 @@ private:
         CAMERA_DX = CAMERA_WIDTH / 4;
 
     enum {
+        MAT_SOLID = 1
+    };
+
+    enum {
         TYPE_BUNKER,
         TYPE_BASE,
         TYPE_ALIEN1,
@@ -44,8 +48,27 @@ private:
         TYPE_SHOT
     };
 
+    typedef enum {
+        FX_ALIEN1,
+        FX_ALIEN2,
+        FX_ALIEN3,
+        FX_BOOM1,
+        FX_BOOM2,
+        FX_CLICK,
+        FX_DONK,
+        FX_FANFARE,
+        FX_LOSE,
+        FX_PLINK,
+        FX_SHOT,
+    } Effect;
+
+    static const int FX_COUNT = (int) FX_SHOT + 1;
+
     Texture::Ref m_tlv3;
+    AudioFile::Ref m_fx[FX_COUNT];
     Zone m_zone;
+
+    AudioSource m_aplayer, m_aalien, m_afx;
 
     bool m_standing;
 
