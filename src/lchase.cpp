@@ -189,7 +189,6 @@ void LChase::advance(unsigned time, int controls)
         } else {
             
         }
-        std::printf("dx %d dy %d\n", dx, dy);
         if (dx || dy) {
             m_actor[i].move = 0;
             m_actor[i].dx = dx;
@@ -239,8 +238,8 @@ void LChase::draw(int frac)
         int x = m_actor[i].x * 16, y = m_actor[i].y * 16;
         if (m_actor[i].move >= 0) {
             int frac2 = frac + m_actor[i].move * FRAME_TIME;
-            x += (m_actor[i].dx * frac2) / (FRAME_TIME * MOVE_TICKS);
-            y += (m_actor[i].dy * frac2) / (FRAME_TIME * MOVE_TICKS);
+            x += (m_actor[i].dx * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
+            y += (m_actor[i].dy * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
         }
         int s;
         if (i == 0)

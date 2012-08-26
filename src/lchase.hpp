@@ -29,7 +29,7 @@ public:
     static const int NUM_MONSTER = 2,
         NUM_KEY = 2, NUM_ACTOR = NUM_MONSTER + 1;
 
-    static const int MOVE_TICKS = 25;
+    static const int MOVE_TICKS = 32;
 
     typedef enum {
         ST_BEGIN,
