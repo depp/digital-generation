@@ -21,7 +21,7 @@ private:
         LEVEL_MINX = 0,
         LEVEL_MAXX = 1280 * 2,
         LEVEL_MINY = 32,
-        LEVEL_MAXY = 720,
+        LEVEL_MAXY = SCREEN_HEIGHT / 2 + 64,
 
         GRAVITY = 32,
         MAX_FALL = 512,
@@ -30,13 +30,18 @@ private:
         PLAYER_ERG = PLAYER_MX / 8,
 
         TANK_DX = 256 * 3/2,
+        TANK_SHOTTIME = SECOND / 3,
+        SHOT_SPEED = 256 * 4,
+        POOF_TIME = SECOND / 2,
 
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
         CAMERA_DX = CAMERA_WIDTH / 4;
 
     enum {
-        MAT_SOLID = 1
+        MAT_SOLID = 1,
+        MAT_PLAYER = 2,
+        MAT_ALIEN = 4
     };
 
     enum {
@@ -47,7 +52,8 @@ private:
         TYPE_ALIEN3,
         TYPE_PLAYER,
         TYPE_TANK,
-        TYPE_SHOT
+        TYPE_PSHOT,
+        TYPE_ASHOT
     };
 
     typedef enum {
@@ -73,6 +79,7 @@ private:
     AudioSource m_aplayer, m_aalien, m_afx;
 
     bool m_standing;
+    int m_pshot, m_pshottime, m_ashot;
 
     Zone::EMover *m_player, *m_tank, *m_alien[ALIEN_COUNT];
     int m_camx, m_campx;
@@ -80,6 +87,8 @@ private:
     void initlevel();
     void spawnplayer(int x, int y);
     void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
+    void pshotCollide(unsigned time, Zone::EMover &s,
+                      Zone::ECollide *o, Zone::Dir dir);
 
 public:
     LInvade(GameScreen &screen);

@@ -36,6 +36,7 @@ void LInvade::spawnplayer(int x, int y)
         m_player->is_active = false;
         m_player = NULL;
     }
+    x = LEVEL_MAXX-256;
     Zone::EMover *e = m_zone.newmover(LV3::PLYR1, x, y);
     if (!e)
         return;
@@ -44,7 +45,7 @@ void LInvade::spawnplayer(int x, int y)
     e->id = 0;
     e->w = 16;
     e->h = 32;
-    e->mat_mask = MAT_SOLID;
+    e->mat_mask = MAT_PLAYER;
     e->col_mask = MAT_SOLID;
     m_standing = false;
 }
@@ -101,6 +102,10 @@ void LInvade::initlevel()
     spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
 
     m_campx = m_camx = LEVEL_MINX + CAMERA_WIDTH / 2;
+
+    m_pshot = 0;
+    m_pshottime = 0;
+    m_ashot = 0;
 }
 
 LInvade::~LInvade()
@@ -152,7 +157,7 @@ void LInvade::playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir)
                 t->id = 0;
                 t->w = 32;
                 t->h = 32;
-                t->mat_mask = MAT_SOLID;
+                t->mat_mask = MAT_PLAYER;
                 t->col_mask = MAT_SOLID;
             }
             m_aplayer.stop(time);
@@ -170,10 +175,32 @@ void LInvade::playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir)
     }
 }
 
+void LInvade::pshotCollide(unsigned time, Zone::EMover &s,
+                           Zone::ECollide *o, Zone::Dir dir)
+{
+    int fx = -1;
+    s.is_active = false;
+    m_pshot -= 1;
+    if (!o)
+        return;
+    m_zone.newtemp(
+        LV3::POOF2, s.x, s.y + (dir == Zone::DIR_UP ? 16 : 0),
+        POOF_TIME);
+    fx = FX_PLINK;
+
+    if (fx >= 0) {
+        m_afx.stop(time);
+        m_afx.play(time, *m_fx[fx], 0);
+    }
+
+    (void) dir;
+}
 
 void LInvade::advance(unsigned time, int controls)
 {
     int camTarget = m_camx;
+    if (m_pshottime)
+        m_pshottime -= 1;
 
     (void) time;
     (void) controls;
@@ -212,6 +239,25 @@ void LInvade::advance(unsigned time, int controls)
         m_tank->vx = fix2i(ergx * TANK_DX);
 
         camTarget = m_tank->x;
+
+        if ((controls & FLAG_ACTION) &&
+            !m_pshottime &&
+            m_pshot < PSHOT_COUNT)
+        {
+            Zone::EMover *e = m_zone.newmover(
+                LV3::SHOT2, m_tank->x, m_tank->y + 34);
+            if (e) {
+                m_pshot++;
+                m_pshottime = TANK_SHOTTIME;
+                e->type = TYPE_PSHOT;
+                e->id = 0;
+                e->w = 16;
+                e->h = 32;
+                e->vy = SHOT_SPEED;
+                m_aplayer.stop(time);
+                m_aplayer.play(time, *m_fx[FX_SHOT], 0);
+            }
+        }
     }
 
     {
@@ -251,6 +297,10 @@ void LInvade::advance(unsigned time, int controls)
             switch (e.type) {
             case TYPE_PLAYER:
                 playerCollide(time, o, i->dir);
+                break;
+
+            case TYPE_PSHOT:
+                pshotCollide(time, e, o, i->dir);
                 break;
             }
         }
