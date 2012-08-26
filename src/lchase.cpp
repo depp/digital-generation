@@ -520,6 +520,4 @@ void LChase::draw(int frac)
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
     glPopMatrix();
-
-    (void) frac;
 }
