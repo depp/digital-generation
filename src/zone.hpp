@@ -16,12 +16,12 @@ public:
 
     struct Entity {
         Entity()
-            : is_active(false)
+            : is_active(false), was_active(false)
         { }
 
         bool is_active;
+        bool was_active;
         short sprite;
-        short priority;
         short x, y;
     };
 
@@ -78,9 +78,9 @@ public:
     // You cannot resize and keep the objects.
     void reset(int ntemp, int nstatic, int nmover);
 
-    void newtemp(int sprite, int priority, int x, int y, int time);
-    ECollide *newstatic(int sprite, int priority, int x, int y);
-    EMover *newmover(int sprite, int priority, int x, int y);
+    void newtemp(int sprite, int x, int y, int time);
+    ECollide *newstatic(int sprite, int x, int y);
+    EMover *newmover(int sprite, int x, int y);
 
     void setBounds(int x0, int x1, int y0, int y1)
     {

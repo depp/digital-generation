@@ -29,6 +29,8 @@ private:
         PLAYER_MY = 256 * 5,
         PLAYER_ERG = PLAYER_MX / 8,
 
+        TANK_DX = 256 * 3/2,
+
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
         CAMERA_DX = CAMERA_WIDTH / 4;
@@ -72,11 +74,12 @@ private:
 
     bool m_standing;
 
-    Zone::EMover *m_eplayer, *m_etank, *m_ealien[ALIEN_COUNT];
+    Zone::EMover *m_player, *m_tank, *m_alien[ALIEN_COUNT];
     int m_camx, m_campx;
 
     void initlevel();
     void spawnplayer(int x, int y);
+    void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
 
 public:
     LInvade(GameScreen &screen);

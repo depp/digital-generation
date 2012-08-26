@@ -32,14 +32,14 @@ LInvade::LInvade(GameScreen &screen)
 
 void LInvade::spawnplayer(int x, int y)
 {
-    if (m_eplayer) {
-        m_eplayer->is_active = false;
-        m_eplayer = NULL;
+    if (m_player) {
+        m_player->is_active = false;
+        m_player = NULL;
     }
-    Zone::EMover *e = m_zone.newmover(LV3::PLYR1, 999, x, y);
+    Zone::EMover *e = m_zone.newmover(LV3::PLYR1, x, y);
     if (!e)
         return;
-    m_eplayer = e;
+    m_player = e;
     e->type = TYPE_PLAYER;
     e->id = 0;
     e->w = 16;
@@ -51,10 +51,10 @@ void LInvade::spawnplayer(int x, int y)
 
 void LInvade::initlevel()
 {
-    m_eplayer = NULL;
-    m_etank = NULL;
+    m_player = NULL;
+    m_tank = NULL;
     for (int i = 0; i < ALIEN_COUNT; ++i)
-        m_ealien[i] = NULL;
+        m_alien[i] = NULL;
 
     m_zone.reset(
         TEMP_LIMIT,
@@ -78,7 +78,7 @@ void LInvade::initlevel()
         y = y/4 + 64;
         
         Zone::ECollide *e = m_zone.newstatic(
-            LV3::BUNK1 + (h < 128), 0, LEVEL_MINX + x, LEVEL_MINY + y);
+            LV3::BUNK1 + (h < 128), LEVEL_MINX + x, LEVEL_MINY + y);
         if (!e)
             break;
         e->type = TYPE_BUNKER;
@@ -90,7 +90,7 @@ void LInvade::initlevel()
 
     {
         Zone::ECollide *e = m_zone.newstatic(
-            LV3::BASE, 999, LEVEL_MAXX - 64, LEVEL_MINY + 32);
+            LV3::BASE, LEVEL_MAXX - 64, LEVEL_MINY + 32);
         e->type = TYPE_BASE;
         e->id = 0;
         e->w = 64;
@@ -106,6 +106,71 @@ void LInvade::initlevel()
 LInvade::~LInvade()
 { }
 
+void LInvade::playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir)
+{
+    if (!m_player)
+        return;
+    Zone::EMover &p = *m_player;
+    int fx = -1;
+
+    switch (dir) {
+    case Zone::DIR_DOWN:
+        m_standing = true;
+        if (p.vy < -256) {
+            fx = FX_CLICK;
+        }
+        if (p.vy < 0)
+            p.vy = 0;
+        break;
+
+    case Zone::DIR_UP:
+        if (p.vy > 0)
+            p.vy = 0;
+        break;
+
+    default:
+        break;
+    }
+
+    if (o) {
+        switch (o->type) {
+        case TYPE_BASE:
+            if (m_player)
+                m_player->is_active = false;
+            m_player = NULL;
+            if (m_tank) {
+                m_tank->is_active = false;
+                m_tank = NULL;
+            }
+            {
+                Zone::EMover *t = m_zone.newmover(
+                    LV3::TANK, o->x - 50, o->y - 16);
+                if (!t)
+                    break;
+                m_tank = t;
+                t->type = TYPE_TANK;
+                t->id = 0;
+                t->w = 32;
+                t->h = 32;
+                t->mat_mask = MAT_SOLID;
+                t->col_mask = MAT_SOLID;
+            }
+            m_aplayer.stop(time);
+            fx = FX_FANFARE;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    if (fx >= 0) {
+        m_aplayer.stop(time);
+        m_aplayer.play(time, *m_fx[fx], 0);
+    }
+}
+
+
 void LInvade::advance(unsigned time, int controls)
 {
     int camTarget = m_camx;
@@ -113,35 +178,40 @@ void LInvade::advance(unsigned time, int controls)
     (void) time;
     (void) controls;
 
-    if (m_eplayer) {
-        m_eplayer->vy -= GRAVITY;
-        if (m_eplayer->vy < -MAX_FALL)
-            m_eplayer->vy = -MAX_FALL;
+    int ergx = 0;
+    if (controls & FLAG_LEFT)
+        ergx -= 256;
+    if (controls & FLAG_RIGHT)
+        ergx += 256;
+
+    if (m_player) {
+        m_player->vy -= GRAVITY;
+        if (m_player->vy < -MAX_FALL)
+            m_player->vy = -MAX_FALL;
         if (m_standing && (controls & FLAG_UP)) {
-            m_eplayer->vy = PLAYER_MY;
+            m_player->vy = PLAYER_MY;
         }
 
-        int ergx = 0;
-        if (controls & FLAG_LEFT)
-            ergx -= 256;
-        else if (controls & FLAG_RIGHT)
-            ergx += 256;
         int tvx = fix2i(ergx * PLAYER_MX);
-        int dvx = tvx - m_eplayer->vx;
+        int dvx = tvx - m_player->vx;
         if (dvx < -PLAYER_ERG)
             dvx = -PLAYER_ERG;
         if (dvx > PLAYER_ERG)
             dvx = PLAYER_ERG;
-        m_eplayer->vx += dvx;
+        m_player->vx += dvx;
         int ptick = (time >> 7) & 1;
         if (m_standing) {
-            if (m_eplayer->vx > 0)
-                m_eplayer->sprite = LV3::PLYL1 + ptick;
-            else if (m_eplayer->vx < 0)
-                m_eplayer->sprite = LV3::PLYR1 + ptick;
+            if (m_player->vx > 0)
+                m_player->sprite = LV3::PLYL1 + ptick;
+            else if (m_player->vx < 0)
+                m_player->sprite = LV3::PLYR1 + ptick;
         }
 
-        camTarget = m_eplayer->x;
+        camTarget = m_player->x;
+    } else if (m_tank) {
+        m_tank->vx = fix2i(ergx * TANK_DX);
+
+        camTarget = m_tank->x;
     }
 
     {
@@ -177,28 +247,10 @@ void LInvade::advance(unsigned time, int controls)
              i != e; ++i)
         {
             Zone::EMover &e = *i->ent;
-            // Zone::ECollide *o = i->other;
+            Zone::ECollide *o = i->other;
             switch (e.type) {
             case TYPE_PLAYER:
-                switch (i->dir) {
-                case Zone::DIR_DOWN:
-                    m_standing = true;
-                    if (e.vy < -256) {
-                        m_aplayer.play(time, *m_fx[FX_CLICK], 0);
-                    }
-                    if (e.vy < 0)
-                        e.vy = 0;
-                    // PLAY SOUND
-                    break;
-
-                case Zone::DIR_UP:
-                    if (e.vy > 0)
-                        e.vy = 0;
-                    break;
-
-                default:
-                    break;
-                }
+                playerCollide(time, o, i->dir);
                 break;
             }
         }

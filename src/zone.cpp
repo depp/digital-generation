@@ -26,41 +26,42 @@ void Zone::reset(int ntemp, int nstatic, int nmover)
 }
 
 template<typename T>
-static T *findent(vector<T> &v, int priority)
+static T *findent(vector<T> &v)
 {
     typename vector<T>::iterator i = v.begin(), e = v.end();
     for (; i != e; ++i) {
-        if (!i->is_active)
+        if (!i->is_active && !i->was_active)
             return &*i;
     }
+    return 0;
+    /*
     for (; i != e; ++i) {
         if (i->priority < priority)
             return &*i;
     }
     return 0;
+    */
 }
 
-void Zone::newtemp(int sprite, int priority, int x, int y, int time)
+void Zone::newtemp(int sprite, int x, int y, int time)
 {
-    ETemp *e = findent(m_temp, priority);
+    ETemp *e = findent(m_temp);
     if (!e)
         return;
     e->is_active = true;
     e->sprite = sprite;
-    e->priority = priority;
     e->x = x;
     e->y = y;
     e->time = time;
 }
 
-Zone::ECollide *Zone::newstatic(int sprite, int priority, int x, int y)
+Zone::ECollide *Zone::newstatic(int sprite, int x, int y)
 {
-    ECollide *e = findent(m_static, priority);
+    ECollide *e = findent(m_static);
     if (!e)
         return NULL;
     e->is_active = true;
     e->sprite = sprite;
-    e->priority = priority;
     e->x = x;
     e->y = y;
 
@@ -72,20 +73,19 @@ Zone::ECollide *Zone::newstatic(int sprite, int priority, int x, int y)
     return e;
 }
 
-Zone::EMover *Zone::newmover(int sprite, int priority, int x, int y)
+Zone::EMover *Zone::newmover(int sprite, int x, int y)
 {
-    EMover *e = findent(m_mover, priority);
+    EMover *e = findent(m_mover);
     if (!e)
         return NULL;
     e->is_active = true;
     e->sprite = sprite;
-    e->priority = priority;
     e->x = x;
     e->y = y;
     e->vx = 0;
     e->vy = 0;
-    e->px = 0;
-    e->py = 0;
+    e->px = x;
+    e->py = y;
     e->hx = x * 256;
     e->hy = y * 256;
     return e;
@@ -195,9 +195,11 @@ void Zone::advance()
              e = m_temp.end();
          i != e; ++i)
     {
-        if (!i->is_active)
+        if (!i->is_active) {
+            i->was_active = false;
             continue;
-        i->priority -= 1;
+        }
+        // i->priority -= 1;
         i->time -= 1;
         if (i->time == 0)
             i->is_active = 0;
@@ -209,8 +211,10 @@ void Zone::advance()
              e = m_mover.end();
          i != e; ++i)
     {
-        if (!i->is_active)
+        if (!i->is_active) {
+            i->was_active = false;
             continue;
+        }
         i->hx += i->vx;
         i->hy += i->vy;
         i->px = i->x;
@@ -224,8 +228,10 @@ void Zone::advance()
              xe = m_mover.end();
          xi != xe; ++xi)
     {
-        if (!xi->is_active)
+        if (!xi->is_active) {
+            xi->was_active = false;
             continue;
+        }
 
         // Order: First walls, then statics, then movers.
 
