@@ -92,6 +92,10 @@ LChase::~LChase()
 
 void LChase::startWave(int wave)
 {
+    if (wave >= NUM_WAVES) {
+        nextLevel();
+        return;
+    }
     assert(wave >= 0 && wave < NUM_WAVES);
     m_waveno = wave;
 
