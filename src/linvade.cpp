@@ -13,6 +13,7 @@ LInvade::LInvade(GameScreen &screen)
     : Level(screen)
 {
     m_tlv3 = Texture::file(LV3::TEXNAME);
+    m_moon = Texture::file("img/moon");
 
     static const char FX_NAME[FX_COUNT][8] = {
         "alien1", "alien2", "alien3", "boom1", "boom2", "click",
@@ -626,12 +627,35 @@ void LInvade::draw(int frac)
     glScalef(2.0f, 2.0f, 2.0f);
     glTranslatef((float) (CAMERA_WIDTH/2 - camx), 0, 0);
     glEnable(GL_TEXTURE_2D);
-    m_tlv3->bind();
+    glEnable(GL_BLEND);
 
+    {
+        int moonw = 1024*2, moonh = 128*2;
+        int mmin = moonw / 2, mmax = LEVEL_WIDTH - moonw / 2;
+        int cmin = CAMERA_WIDTH, cmax = LEVEL_WIDTH - CAMERA_WIDTH;
+        int x = mmin + ((mmax - mmin) * (camx - cmin)) / (cmax - cmin);
+
+        float x0 = (float) (x - moonw / 2);
+        float x1 = (float) (x + moonw / 2);
+        float y0 = (float) LEVEL_MINY;
+        float y1 = (float) (LEVEL_MINY + moonh);
+
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+        m_moon->bind();
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(x0, y0);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(x1, y0);
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(x0, y1);
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(x1, y1);
+        glEnd();
+    }
+
+    m_tlv3->bind();
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
     glBegin(GL_TRIANGLES);

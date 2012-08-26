@@ -99,7 +99,7 @@ private:
 
     static const int FX_COUNT = (int) FX_SHOT + 1;
 
-    Texture::Ref m_tlv3;
+    Texture::Ref m_tlv3, m_moon;
     AudioFile::Ref m_fx[FX_COUNT];
     Zone m_zone;
     LevelState m_state;
