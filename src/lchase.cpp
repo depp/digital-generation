@@ -151,6 +151,11 @@ void LChase::startWave(int wave)
 
     m_state = ST_BEGIN;
     m_state_time = 0;
+
+    for (int i = 0; i < NUM_MONSTER; ++i) {
+        m_path[i].clear();
+        m_path[i].delay = (i + 1) * (SECOND/2);
+    }
 }
 
 void LChase::findPath(int monster)
@@ -173,8 +178,19 @@ void LChase::findPath(int monster)
         }
     }
     for (int i = 0; i < NUM_MONSTER; ++i) {
+        if (i == monster)
+            continue;
         int x = m_actor[i+1].x, y = m_actor[i+1].y;
+        const MPath &path = m_path[i];
         d.tiles[y][x] = 0;
+        if (1) {
+            // Exclude monsters from treading each others' paths
+            for (int j = path.pos; j < path.count; ++j) {
+                x += path.moves[j][0];
+                y += path.moves[j][0];
+                d.tiles[y][x] = 0;
+            }
+        }
     }
     int mx = m_actor[monster+1].x, my = m_actor[monster+1].y;
     int px = m_actor[0].x, py = m_actor[0].y;
@@ -269,7 +285,8 @@ void LChase::findPath(int monster)
         path.delay = delay;
         //std::printf("found path, len=%d\n", count);
     } else {
-        puts("Cannot find path to player, sleeping");
+        if (0)
+            puts("Cannot find path to player, sleeping");
         path.pos = 0;
         path.count = 0;
         path.delay = SECOND/4;
@@ -287,8 +304,8 @@ void LChase::advance(unsigned time, int controls)
         if (m >= 0) {
             m++;
             if (m == MOVE_TICKS) {
-                m_actor[i].x += m_actor[i].dx;
-                m_actor[i].y += m_actor[i].dy;
+                // m_actor[i].x;
+                // m_actor[i].y;
                 m_actor[i].dx = 0;
                 m_actor[i].dy = 0;
                 m = -1;
@@ -326,6 +343,8 @@ void LChase::advance(unsigned time, int controls)
         }
         if (dx || dy) {
             m_actor[i].move = 0;
+            m_actor[i].x += dx;
+            m_actor[i].y += dy;
             m_actor[i].dx = dx;
             m_actor[i].dy = dy;
         } else {
@@ -373,7 +392,9 @@ void LChase::draw(int frac)
         int x = m_actor[i].x * 16, y = m_actor[i].y * 16;
         if (m_actor[i].move >= 0) {
             int frac2 = frac + m_actor[i].move * FRAME_TIME;
+            x -= m_actor[i].dx * 16;;
             x += (m_actor[i].dx * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
+            y -= m_actor[i].dy * 16;
             y += (m_actor[i].dy * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
         }
         int s;

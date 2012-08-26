@@ -32,7 +32,7 @@ public:
             : delay(0), pos(0), count(0)
         { }
 
-        void reset()
+        void clear()
         {
             delay = 0;
             pos = 0;
