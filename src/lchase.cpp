@@ -7,6 +7,11 @@
 #include <cstdlib>
 using namespace LD24;
 
+void LChase::Board::clear()
+{
+    std::memset(tiles, 0, sizeof(tiles));
+}
+
 static const char CHASE_LEVELS
 [LChase::NUM_WAVES][LChase::HEIGHT][LChase::WIDTH+1] = {
 {
@@ -116,7 +121,7 @@ void LChase::startWave(int wave)
             default:
                 assert(0);
             }
-            m_tiles[x][y] = out;
+            m_board.tiles[y][x] = out;
         }
     }
     assert(npos == NUM_POS);
@@ -133,9 +138,9 @@ void LChase::startWave(int wave)
         }
     }
 
-    m_tiles[sp[0][0]][sp[0][1]] |= T_ITEM;
-    m_tiles[sp[1][0]][sp[1][1]] |= T_ITEM;
-    m_tiles[sp[2][0]][sp[2][1]] |= T_DOOR;
+    m_board.tiles[sp[0][0]][sp[0][1]] |= T_ITEM;
+    m_board.tiles[sp[1][0]][sp[1][1]] |= T_ITEM;
+    m_board.tiles[sp[2][0]][sp[2][1]] |= T_DOOR;
     for (int i = 0; i < 3; ++i) {
         m_actor[i].move = -1;
         m_actor[i].x = sp[3+i][0];
@@ -176,7 +181,7 @@ void LChase::draw(int frac)
     glBegin(GL_TRIANGLES);
     for (int x = 0; x < WIDTH; ++x) {
         for (int y = 0; y < HEIGHT; ++y) {
-            int c = m_tiles[x][y];
+            int c = m_board.tiles[y][x];
             if (c & T_LADDER)
                 sp.draw(LV2::LADDER, x * 16, y * 16);
             if (c & T_PLATFORM)

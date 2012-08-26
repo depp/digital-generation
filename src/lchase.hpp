@@ -13,6 +13,19 @@ public:
     static const int WIDTH = 20, HEIGHT = 11,
         NUM_WAVES = 3, NUM_POS = 6;
 
+    struct Board {
+        char tiles[HEIGHT][WIDTH];
+
+        void clear();
+
+        int get(int x, int y)
+        {
+            if (x < 0 || x >= WIDTH || y < 0 || y >= WIDTH)
+                return 0;
+            return tiles[y][x];
+        }
+    };
+
     static const int NUM_MONSTER = 2,
         NUM_KEY = 2, NUM_ACTOR = NUM_MONSTER + 1;
 
@@ -30,9 +43,7 @@ public:
         T_LADDER = 2,
         T_PLATFORM = 4,
         T_ITEM = 8,
-        T_DOOR = 16,
-        T_PLAYER = 32,
-        T_MONSTER = 64
+        T_DOOR = 16
     };
 
     enum {
@@ -60,7 +71,7 @@ private:
     int m_beat;
 
     // LOCAL (reset when a wave is started)
-    unsigned char m_tiles[WIDTH][HEIGHT];
+    Board m_board;
 
     GameState m_state;
     int m_state_time;
