@@ -68,6 +68,8 @@ void LInvade::initlevel()
     }
 
     spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 48);
+
+    m_campx = m_camx = LEVEL_MINX + CAMERA_WIDTH / 2;
 }
 
 LInvade::~LInvade()
@@ -75,6 +77,8 @@ LInvade::~LInvade()
 
 void LInvade::advance(unsigned time, int controls)
 {
+    int camTarget = m_camx;
+
     (void) time;
     (void) controls;
 
@@ -104,6 +108,31 @@ void LInvade::advance(unsigned time, int controls)
                 m_eplayer->sprite = LV3::PLYL1 + ptick;
             else if (m_eplayer->vx < 0)
                 m_eplayer->sprite = LV3::PLYR1 + ptick;
+        }
+
+        camTarget = m_eplayer->x;
+    }
+
+    {
+        m_campx = m_camx;
+        int delta = camTarget - m_camx;
+        if (0)
+            std::printf("camx: %d; target: %d; delta %d\n",
+                        m_camx, camTarget, delta);
+        bool movecamera = false;
+        if (delta > CAMERA_DX) {
+            camTarget -= CAMERA_DX;
+            movecamera = true;
+        } else if (delta < -CAMERA_DX) {
+            camTarget += CAMERA_DX;
+            movecamera = true;
+        }
+        if (movecamera) {
+            if (camTarget < LEVEL_MINX + CAMERA_WIDTH / 2)
+                camTarget = LEVEL_MINX + CAMERA_WIDTH / 2;
+            else if (camTarget > LEVEL_MAXX - CAMERA_WIDTH / 2)
+                camTarget = LEVEL_MAXX - CAMERA_WIDTH / 2;
+            m_camx = camTarget;
         }
     }
 
@@ -145,12 +174,14 @@ void LInvade::advance(unsigned time, int controls)
 void LInvade::draw(int frac)
 {
     const SpriteSheet sp = LV3::SPRITES;
+    int camx = m_campx + ((m_camx - m_campx) * frac) / FRAME_TIME;
 
     glClearColor(0.02, 0.03, 0.09, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glPushMatrix();
     glScalef(2.0f, 2.0f, 2.0f);
+    glTranslatef((float) (CAMERA_WIDTH/2 - camx), 0, 0);
     glEnable(GL_TEXTURE_2D);
     m_tlv3->bind();
     glEnable(GL_BLEND);

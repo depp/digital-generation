@@ -27,7 +27,11 @@ private:
         MAX_FALL = 512,
         PLAYER_MX = 256 * 2,
         PLAYER_MY = 256 * 5,
-        PLAYER_ERG = PLAYER_MX / 8;
+        PLAYER_ERG = PLAYER_MX / 8,
+
+        CAMERA_WIDTH = SCREEN_WIDTH / 2,
+        CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
+        CAMERA_DX = CAMERA_WIDTH / 4;
 
     enum {
         TYPE_BUNKER,
@@ -40,12 +44,20 @@ private:
         TYPE_SHOT
     };
 
+    typedef enum {
+        CAM_STILL,
+        CAM_LEFT,
+        CAM_RIGHT
+    } CamState;
+
     Texture::Ref m_tlv3;
     Zone m_zone;
 
     bool m_standing;
 
     Zone::EMover *m_eplayer, *m_etank, *m_ealien[ALIEN_COUNT];
+    int m_camx, m_campx;
+    CamState m_camst;
 
     void initlevel();
     void spawnplayer(int x, int y);
