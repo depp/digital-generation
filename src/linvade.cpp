@@ -549,12 +549,12 @@ void LInvade::advance(unsigned time, int controls)
             break;
 
         case AL_LEFT:
-            if (m_alien[i]->x < m_camx - CAMERA_WIDTH / 2 + 32)
+            if (m_alien[i]->x < m_camx - CAMERA_WIDTH / 2 + ALIEN_MARGIN)
                 goto alien_chdir;
             goto alien_shoot;
 
         case AL_RIGHT:
-            if (m_alien[i]->x > m_camx + CAMERA_WIDTH / 2 - 32)
+            if (m_alien[i]->x > m_camx + CAMERA_WIDTH / 2 - ALIEN_MARGIN)
                 goto alien_chdir;
             goto alien_shoot;
 

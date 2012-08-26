@@ -46,6 +46,8 @@ private:
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
         CAMERA_DX = CAMERA_WIDTH / 4;
 
+    static const int ALIEN_MARGIN = 64;
+
     static const int CPOOF_TIMER = SECOND / 16, CPOOF_TIME = SECOND / 3;
     static const int TPOOF_TIMER = SECOND / 8, PPOOF_TIMER = SECOND / 8;
 
