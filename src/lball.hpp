@@ -61,10 +61,11 @@ private:
         FX_JMP,
         FX_LAND,
         FX_STEP,
-        FX_BOOM
+        FX_BOOM,
+        FX_WIN
     } Effect;
 
-    static const int FX_COUNT = (int) FX_BOOM + 1;
+    static const int FX_COUNT = (int) FX_WIN + 1;
 
     unsigned m_lastctl;
 

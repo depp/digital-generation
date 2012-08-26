@@ -6,6 +6,8 @@
 #include <cstring>
 using namespace LD24;
 
+#define SHORTCUT 0
+
 enum {
     SP_NUMBER = 0,
     SP_PADDLE = 10,
@@ -49,7 +51,7 @@ LBall::LBall(GameScreen &screen)
     m_anoise.open();
 
     static const char FX_NAME[FX_COUNT][5] = {
-        "png", "bad", "good", "jmp", "land", "step", "boom"
+        "png", "bad", "good", "jmp", "land", "step", "boom", "win"
     };
 
     for (int i = 0; i < FX_COUNT; ++i) {
@@ -126,8 +128,9 @@ void LBall::advance(unsigned time, int controls)
 
     switch (sst) {
     case SS_BEGIN:
-        // FOR QUICK WINS do this sooner
-        if (m_stick > PRE_TIME * SECOND) {
+        if (m_stick > PRE_TIME * SECOND ||
+            (SHORTCUT && m_stick > 5))
+        {
             m_stick = 0;
             m_sstate = SS_CHAOS;
             m_anoise.play(time, *m_fx[FX_BOOM], 0);
@@ -283,7 +286,7 @@ void LBall::advance(unsigned time, int controls)
                 if (x >= dotPos(2) && x <= dotPos(9)) {
                     m_sstate = SS_WIN;
                     m_stick = 0;
-                    fx = FX_GOOD;
+                    fx = FX_WIN;
                 }
                 goto ceiling;
             }
@@ -376,8 +379,8 @@ void LBall::advance(unsigned time, int controls)
                     fx = (int) FX_GOOD;
                     m_npoints[0] += 1;
                 }
-                // FOR QUICK WINS
-                // m_npoints[0] = MAX_SCORE;
+                if (SHORTCUT)
+                    m_npoints[0] = MAX_SCORE;
                 m_agame.stop(time);
                 m_agame.pset(AudioSource::PAN, time, 0.0f);
                 m_agame.play(time, *m_fx[fx], 0);
