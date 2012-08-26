@@ -15,31 +15,31 @@ void LChase::Board::clear()
 static const char CHASE_LEVELS
 [LChase::NUM_WAVES][LChase::HEIGHT][LChase::WIDTH+1] = {
 {
-    "      *        *    ",
+    "  *   M   *    M  * ",
     " ================== ",
-    "    |    |  |    |  ",
-    "    |    |  |    |  ",
-    "    | *  |  |    |  ",
+    "    |     |      |  ",
+    "    |     |      |  ",
+    "    | *  ====    |  ",
     "  =====  |  |  * |  ",
     "  |   |  |  ======  ",
     "  |   |  |     |    ",
-    "  |   |  |     |    ",
-    " *|   |  |  *  |    ",
+    "  |   ====     |    ",
+    " P|    |    *  |  E ",
     " ================== ",
 }, {
-    "     *              ",
+    "  D  M              ",
     " ==========         ",
-    " |        | *       ",
+    " |     |  | *       ",
     " |    ========      ",
     " |    |      |  *   ",
-    " |  * |      ====== ",
+    " |* M |      ====== ",
     " ======      |    | ",
-    "      |    * |    | ",
+    "      | *    |    | ",
     "      ========    | ",
-    "         |     *  | ",
+    "         |  |  P  | ",
     "         ========== "
 }, {
-    "         *          ",
+    "      M E  M        ",
     "     ========       ",
     "  *  |      |     * ",
     "  ======  ========= ",
@@ -47,7 +47,7 @@ static const char CHASE_LEVELS
     "   |   |  |     |   ",
     " * |   |  |   * |   ",
     " =======  =======   ",
-    "     |  *   |       ",
+    "     |  P   |       ",
     "     ========       ",
     "                    "
 }
@@ -78,13 +78,12 @@ LChase::~LChase()
 
 void LChase::startWave(int wave)
 {
-    int sp[NUM_POS][2];
-
     assert(wave >= 0 && wave < NUM_WAVES);
     m_waveno = wave;
 
     const char (*ldata)[WIDTH+1] = CHASE_LEVELS[wave];
-    int npos = 0;
+    int nkey = 0, nmonster = 0;
+    bool has_door = false, has_player = false;
     for (int y = 0; y < HEIGHT; ++y) {
         for (int x = 0; x < WIDTH; ++x) {
             char c = ldata[HEIGHT-y-1][x], d = ' ';
@@ -101,12 +100,29 @@ void LChase::startWave(int wave)
                 out |= T_PASS | T_LADDER;
                 break;
 
+            case 'E':
+                assert(!has_door);
+                has_door = true;
+                m_door = Pos(x, y);
+                break;
+
+            case 'M':
+                assert(nmonster < MAX_MONSTER);
+                m_actor[nmonster+1].x = x;
+                m_actor[nmonster+1].y = y;
+                nmonster++;
+                break;
+
+            case 'P':
+                assert(!has_player);
+                has_player = true;
+                m_actor[0].x = x;
+                m_actor[0].y = y;
+                break;
+
             case '*':
-                assert(npos < NUM_POS);
-                assert(out & T_PASS);
-                sp[npos][0] = x;
-                sp[npos][1] = y;
-                npos++;
+                out |= T_ITEM;
+                nkey += 1;
                 break;
 
             case '=':
@@ -124,27 +140,12 @@ void LChase::startWave(int wave)
             m_board.tiles[y][x] = out;
         }
     }
-    assert(npos == NUM_POS);
+    assert(has_door && has_player && nkey > 0 && nmonster > 0);
+    m_num_key = nkey;
+    m_num_monster = nmonster;
 
-    for (int i = 1; i < NUM_POS; ++i) {
-        int j = Rand::girand() % (i + 1);
-        if (i != j) {
-            int x = sp[i][0];
-            int y = sp[i][1];
-            sp[i][0] = sp[j][0];
-            sp[i][1] = sp[j][1];
-            sp[j][0] = x;
-            sp[j][1] = y;
-        }
-    }
-
-    m_board.tiles[sp[0][1]][sp[0][0]] |= T_ITEM;
-    m_board.tiles[sp[1][1]][sp[1][0]] |= T_ITEM;
-    m_board.tiles[sp[2][1]][sp[2][0]] |= T_DOOR;
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < nmonster + 1; ++i) {
         m_actor[i].move = -1;
-        m_actor[i].x = sp[3+i][0];
-        m_actor[i].y = sp[3+i][1];
         m_actor[i].dx = 0;
         m_actor[i].dy = 0;
     }
@@ -152,7 +153,7 @@ void LChase::startWave(int wave)
     m_state = ST_BEGIN_UNPRESS;
     m_state_time = TIME_START;
 
-    for (int i = 0; i < NUM_MONSTER; ++i) {
+    for (int i = 0; i < nmonster; ++i) {
         m_path[i].clear();
         m_path[i].delay = (i + 1) * (SECOND/2);
     }
@@ -177,7 +178,7 @@ void LChase::findPath(int monster)
             d.tiles[y][x] = (c & T_PASS) ? 255 : 0;
         }
     }
-    for (int i = 0; i < NUM_MONSTER; ++i) {
+    for (int i = 0; i < m_num_monster; ++i) {
         if (i == monster)
             continue;
         int x = m_actor[i+1].x, y = m_actor[i+1].y;
@@ -365,7 +366,7 @@ void LChase::advance(unsigned time, int controls)
 
 void LChase::moveActors(unsigned time, int controls)
 {
-    for (int i = 0; i < NUM_ACTOR; ++i) {
+    for (int i = 0; i < m_num_monster + 1; ++i) {
         int m = m_actor[i].move;
         int x = m_actor[i].x, y = m_actor[i].y;
         if (m >= 0) {
@@ -430,7 +431,7 @@ void LChase::moveActors(unsigned time, int controls)
 void LChase::checkMonsters(unsigned time)
 {
     Pos ppos = m_actor[0].curPos();
-    for (int i = 0; i < NUM_MONSTER; ++i) {
+    for (int i = 0; i < m_num_monster; ++i) {
         Pos mpos = m_actor[i+1].curPos();
         int dx = std::abs(ppos.x - mpos.x);
         int dy = std::abs(ppos.y - mpos.y);
@@ -439,7 +440,7 @@ void LChase::checkMonsters(unsigned time)
             if (0) {
                 std::printf("dx: %d, dy: %d, dist: %d, mon=%d\n",
                             dx, dy, dist, i);
-                for (int j = 0; j < NUM_ACTOR; ++j) {
+                for (int j = 0; j < m_num_monster + 1; ++j) {
                     Actor &a = m_actor[j];
                     std::printf("x %d; dx %d; y %d; dy %d; move %d\n",
                                 a.x, a.dx, a.y, a.dy, a.move);

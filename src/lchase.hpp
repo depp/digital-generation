@@ -11,7 +11,7 @@ namespace LD24 {
 class LChase : public Level {
 public:
     static const int WIDTH = 20, HEIGHT = 11,
-        NUM_WAVES = 3, NUM_POS = 6;
+        NUM_WAVES = 3;
 
     struct Board {
         unsigned char tiles[HEIGHT][WIDTH];
@@ -45,8 +45,8 @@ public:
         signed char moves[LEN][2];
     };
 
-    static const int NUM_MONSTER = 2,
-        NUM_KEY = 2, NUM_ACTOR = NUM_MONSTER + 1;
+    static const int MAX_MONSTER = 4,
+        MAX_ACTOR = MAX_MONSTER + 1;
 
     static const int MOVE_TICKS = 32;
 
@@ -112,8 +112,12 @@ private:
     GameState m_state;
     int m_state_time;
 
-    Actor m_actor[NUM_ACTOR];
-    MPath m_path[NUM_MONSTER];
+    Actor m_actor[MAX_ACTOR];
+    MPath m_path[MAX_MONSTER];
+    int m_num_monster;
+
+    Pos m_door;
+    int m_num_key;
 
     void startWave(int wave);
     void findPath(int monster);
