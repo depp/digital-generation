@@ -183,9 +183,10 @@ void LInvade::pshotCollide(unsigned time, Zone::EMover &s,
     m_pshot -= 1;
     if (!o)
         return;
-    m_zone.newtemp(
-        LV3::POOF2, s.x, s.y + (dir == Zone::DIR_UP ? 16 : 0),
-        POOF_TIME);
+    int y = s.y;
+    if (y < o->y - o->h/2)
+        y = o->y - o->h/2;
+    m_zone.newtemp(LV3::POOF2, s.x, y, POOF_TIME);
     fx = FX_PLINK;
 
     if (fx >= 0) {
