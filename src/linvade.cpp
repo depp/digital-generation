@@ -56,6 +56,7 @@ void LInvade::initlevel()
     m_tank = NULL;
     for (int i = 0; i < ALIEN_COUNT; ++i)
         m_alien[i] = NULL;
+    m_acount = 0;
 
     m_zone.reset(
         TEMP_LIMIT,
@@ -106,6 +107,9 @@ void LInvade::initlevel()
     m_pshot = 0;
     m_pshottime = 0;
     m_ashot = 0;
+    m_wave = 0;
+
+    m_spawntime = SPAWN_TIME;
 }
 
 LInvade::~LInvade()
@@ -197,14 +201,57 @@ void LInvade::pshotCollide(unsigned time, Zone::EMover &s,
     (void) dir;
 }
 
+void LInvade::spawnAliens(unsigned time)
+{
+    int wave = m_wave + 1;
+    if (wave >= NUM_WAVES)
+        wave = NUM_WAVES;
+    bool spawned = false;
+    int t1 = 0, t2 = 0;
+    switch (wave) {
+    case 1: t1 = 0; t2 = 0; break;
+    case 2: t1 = 0; t2 = 1; break;
+    case 3: t2 = 1; t2 = 1; break;
+    }
+    for (int i = 0; i < ALIEN_COUNT; ++i) {
+        if (m_alien[i])
+            continue;
+        int t = (i & 1) ? t2 : t1;
+        int y = LEVEL_MAXY - 32;
+        int spread = (LEVEL_MAXX - LEVEL_MINX) / ALIEN_COUNT;
+        int x = spread / 2 + i * spread;
+        Zone::EMover *e = m_zone.newmover(LV3::SHIP1 + t, x, y);
+        if (!e)
+            break;
+        spawned = true;
+        m_alien[i] = e;
+        e->type = TYPE_ALIEN1 + t;
+        e->id = i;
+        e->w = 32;
+        e->h = 16;
+        e->vy = -256;
+        m_astate[i] = AL_SPAWN;
+        m_aheight[i] = ALIEN_MINH +
+            (int) (Rand::gfrand() * (ALIEN_MAXH - ALIEN_MINH));
+        m_acount += 1;
+    }
+    if (spawned) {
+        m_aalien.stop(time);
+        m_aalien.play(time, *m_fx[FX_ALIEN1], 0);
+    }
+}
+
 void LInvade::advance(unsigned time, int controls)
 {
     int camTarget = m_camx;
     if (m_pshottime)
         m_pshottime -= 1;
 
-    (void) time;
-    (void) controls;
+    if (m_spawntime) {
+        m_spawntime--;
+        if (!m_spawntime)
+            spawnAliens(time);
+    }
 
     int ergx = 0;
     if (controls & FLAG_LEFT)
@@ -281,6 +328,47 @@ void LInvade::advance(unsigned time, int controls)
             else if (camTarget > LEVEL_MAXX - CAMERA_WIDTH / 2)
                 camTarget = LEVEL_MAXX - CAMERA_WIDTH / 2;
             m_camx = camTarget;
+        }
+    }
+
+    for (int i = 0; i < ALIEN_COUNT; ++i) {
+        switch (m_astate[i]) {
+        case AL_NONE:
+            break;
+
+        case AL_SPAWN:
+            if (m_alien[i]->y <= m_aheight[i]) {
+                m_alien[i]->vy = 0;
+                goto alien_chdir;
+            }
+            break;
+
+        case AL_LEFT:
+            if (m_alien[i]->x < m_camx - CAMERA_WIDTH / 2 + 32)
+                goto alien_chdir;
+            break;
+
+        case AL_RIGHT:
+            if (m_alien[i]->x > m_camx + CAMERA_WIDTH / 2 - 32)
+                goto alien_chdir;
+            break;
+
+        alien_chdir:
+            {
+                int r = (Rand::girand() >> 8) & 255;
+                int speed = fix2i(ALIEN_SPEED * (r + 128));
+                if (m_alien[i]->x < m_camx) {
+                    m_alien[i]->vx = speed;
+                    m_astate[i] = AL_RIGHT;
+                } else {
+                    m_alien[i]->vx = -speed;
+                    m_astate[i] = AL_LEFT;
+                }
+            }
+            break;
+
+        case AL_CRASH:
+            break;
         }
     }
 

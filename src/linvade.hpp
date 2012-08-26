@@ -34,6 +34,12 @@ private:
         SHOT_SPEED = 256 * 4,
         POOF_TIME = SECOND / 2,
 
+        NUM_WAVES = 3,
+        SPAWN_TIME = SECOND * 3,
+        ALIEN_MINH = 160,
+        ALIEN_MAXH = LEVEL_MAXY - 64,
+        ALIEN_SPEED = 256,
+
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
         CAMERA_DX = CAMERA_WIDTH / 4;
@@ -70,6 +76,14 @@ private:
         FX_SHOT,
     } Effect;
 
+    typedef enum {
+        AL_NONE,
+        AL_SPAWN,
+        AL_LEFT,
+        AL_RIGHT,
+        AL_CRASH
+    } AlienState;
+
     static const int FX_COUNT = (int) FX_SHOT + 1;
 
     Texture::Ref m_tlv3;
@@ -83,12 +97,17 @@ private:
 
     Zone::EMover *m_player, *m_tank, *m_alien[ALIEN_COUNT];
     int m_camx, m_campx;
+    int m_wave, m_spawntime;
+    AlienState m_astate[ALIEN_COUNT];
+    int m_aheight[ALIEN_COUNT];
+    int m_acount;
 
     void initlevel();
     void spawnplayer(int x, int y);
     void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
     void pshotCollide(unsigned time, Zone::EMover &s,
                       Zone::ECollide *o, Zone::Dir dir);
+    void spawnAliens(unsigned time);
 
 public:
     LInvade(GameScreen &screen);
