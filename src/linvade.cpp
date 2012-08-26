@@ -52,6 +52,10 @@ void LInvade::initlevel()
         int h = ((r >> 4) & 127) + 64;
         int x = (r >> 12) & 255;
         int y = (r >> 20) & 255;
+        if (i == 0 || i == BARRIER_COUNT - 1) {
+            x = 0;
+            y = 0;
+        }
         x = (x - 128) / 4 + barrier_step / 2 + barrier_step * i;
         // std::printf("y = %d\n", y);
         y = y/4 + 64;
@@ -67,7 +71,7 @@ void LInvade::initlevel()
         e->mat_mask = 1;
     }
 
-    spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 48);
+    spawnplayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
 
     m_campx = m_camx = LEVEL_MINX + CAMERA_WIDTH / 2;
 }

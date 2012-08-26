@@ -44,12 +44,6 @@ private:
         TYPE_SHOT
     };
 
-    typedef enum {
-        CAM_STILL,
-        CAM_LEFT,
-        CAM_RIGHT
-    } CamState;
-
     Texture::Ref m_tlv3;
     Zone m_zone;
 
@@ -57,7 +51,6 @@ private:
 
     Zone::EMover *m_eplayer, *m_etank, *m_ealien[ALIEN_COUNT];
     int m_camx, m_campx;
-    CamState m_camst;
 
     void initlevel();
     void spawnplayer(int x, int y);
