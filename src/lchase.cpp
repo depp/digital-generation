@@ -299,6 +299,10 @@ void LChase::actionGet(unsigned time)
         return;
     m_audio.stop(time);
     m_audio.play(time, *m_fx[FX_GET], 0);
+    m_num_key -= 1;
+    if (!m_num_key) {
+        m_board.tiles[m_door.y][m_door.x] |= T_DOOR;
+    }
 }
 
 void LChase::actionLose(unsigned time)
