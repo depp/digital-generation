@@ -221,6 +221,7 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
                 if (!m_ahealth[a]) {
                     fx = o->type == TYPE_ALIEN3 ? FX_BOOM2 : FX_BOOM1;
                     m_astate[a] = AL_CRASH;
+                    m_ashottime[a] = 1;
                     m_alien[a]->vx =
                         fix2i(2 * ALIEN_SPEED * (rand8() -128));
                     m_alien[a]->vy = -ALIEN_SPEED;
@@ -235,6 +236,11 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
             m_aplayer.stop(time);
             m_aplayer.play(time, *m_fx[FX_LOSE], 0);
             m_state_time = RESPAWN_TIME;
+            if (m_tank) {
+                m_tank->is_active = false;
+                m_tank = NULL;
+            }
+            m_pooftime = 1;
         }
         break;
 
@@ -242,6 +248,7 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
         if (!player && !m_player && m_tank && m_state == ST_TANK) {
             fx = FX_BOOM1;
             m_state = ST_WALK_AGAIN;
+            m_pooftime = 1;
             m_tank->vx = 0;
             int x = m_tank->x;
             if (x > (LEVEL_MINX + LEVEL_MAXX) / 2)
@@ -397,12 +404,32 @@ void LInvade::alienShoot(unsigned time, int a) {
     }
 }
 
+int LInvade::newPoof(Zone::ECollide *e, int ntime)
+{
+    if (!e)
+        return 999;
+    unsigned r = Rand::girand();
+    int rx = (int) ((r >> 4) & 255) - 128;
+    int ry = (int) ((r >> 12) & 255) - 128;
+    m_zone.newtemp(
+        LV3::POOF1,
+        e->x + fix2i(e->w * rx),
+        e->y + fix2i(e->h * ry),
+        CPOOF_TIME);
+    return fix2i(((int) ((r >> 20) & 255) + 128) * ntime);
+}
+
 void LInvade::advance(unsigned time, int controls)
 {
+    // std::printf("player = %p\n", (void *) m_player);
     if (m_state == ST_DEAD) {
         controls = 0;
-        if (m_state_time && !--m_state_time)
+        if (m_state_time && !--m_state_time) {
             initlevel();
+        } else {
+            if (--m_pooftime < 0)
+                m_pooftime = newPoof(m_player, PPOOF_TIMER);
+        }
     }
 
     int camTarget = m_camx;
@@ -445,6 +472,10 @@ void LInvade::advance(unsigned time, int controls)
         }
 
         camTarget = m_player->x;
+
+        if (--m_pooftime < 0 && m_tank) {
+            m_pooftime = newPoof(m_tank, TPOOF_TIMER);
+        }
     } else if (m_tank) {
         m_tank->vx = fix2i(ergx * TANK_DX);
 
@@ -546,6 +577,8 @@ void LInvade::advance(unsigned time, int controls)
             break;
 
         case AL_CRASH:
+            if (--m_ashottime[i] <= 0)
+                m_ashottime[i] = newPoof(m_alien[i], CPOOF_TIMER);
             break;
         }
     }

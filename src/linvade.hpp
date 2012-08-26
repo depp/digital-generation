@@ -11,7 +11,7 @@ namespace LD24 {
 
 class LInvade : public Level {
 private:
-    static const int TEMP_LIMIT = 8,
+    static const int TEMP_LIMIT = 16,
         BARRIER_COUNT = 14,
         ASHOT_COUNT = 16,
         PSHOT_COUNT = 4,
@@ -45,6 +45,9 @@ private:
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
         CAMERA_DX = CAMERA_WIDTH / 4;
+
+    static const int CPOOF_TIMER = SECOND / 16, CPOOF_TIME = SECOND / 3;
+    static const int TPOOF_TIMER = SECOND / 8, PPOOF_TIMER = SECOND / 8;
 
     enum {
         MAT_SOLID = 1,
@@ -110,6 +113,7 @@ private:
     Zone::EMover *m_player, *m_tank, *m_alien[ALIEN_COUNT];
     int m_camx, m_campx;
     int m_wave, m_spawntime;
+    int m_pooftime;
     AlienState m_astate[ALIEN_COUNT];
     int m_aheight[ALIEN_COUNT], m_ashottime[ALIEN_COUNT],
         m_ahealth[ALIEN_COUNT];
@@ -124,6 +128,7 @@ private:
                       Zone::ECollide *o, Zone::Dir dir);
     void spawnAliens(unsigned time);
     void alienShoot(unsigned time, int i);
+    int newPoof(Zone::ECollide *e, int ntime);
 
 public:
     LInvade(GameScreen &screen);
