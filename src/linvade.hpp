@@ -12,7 +12,7 @@ namespace LD24 {
 class LInvade : public Level {
 private:
     static const int TEMP_LIMIT = 8,
-        BARRIER_COUNT = 12,
+        BARRIER_COUNT = 14,
         ASHOT_COUNT = 16,
         PSHOT_COUNT = 4,
         ALIEN_COUNT = 4,
@@ -85,13 +85,23 @@ private:
         AL_CRASH
     } AlienState;
 
+    typedef enum {
+        ST_WALK,
+        ST_WALK_AGAIN,
+        ST_TANK,
+        ST_DEAD,
+        ST_WIN
+    } LevelState;
+
     static const int FX_COUNT = (int) FX_SHOT + 1;
 
     Texture::Ref m_tlv3;
     AudioFile::Ref m_fx[FX_COUNT];
     Zone m_zone;
+    LevelState m_state;
+    int m_state_time;
 
-    AudioSource m_aplayer, m_aalien, m_afx;
+    AudioSource m_aplayer, m_aalien, m_afx, m_aboom;
 
     bool m_standing;
     int m_pshot, m_pshottime, m_ashot;
@@ -100,11 +110,12 @@ private:
     int m_camx, m_campx;
     int m_wave, m_spawntime;
     AlienState m_astate[ALIEN_COUNT];
-    int m_aheight[ALIEN_COUNT], m_ashottime[ALIEN_COUNT];
+    int m_aheight[ALIEN_COUNT], m_ashottime[ALIEN_COUNT],
+        m_ahealth[ALIEN_COUNT];
     int m_acount, m_ashotcount;
 
     void initlevel();
-    void spawnplayer(int x, int y);
+    void spawnPlayer(int x, int y);
     void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
     void shotCollide(unsigned time, Zone::EMover &s,
                      Zone::ECollide *o, Zone::Dir dir);
