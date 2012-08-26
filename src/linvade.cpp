@@ -592,6 +592,10 @@ void LInvade::draw(int frac)
     glTranslatef((float) (CAMERA_WIDTH/2 - camx), 0, 0);
     glEnable(GL_TEXTURE_2D);
     m_tlv3->bind();
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
