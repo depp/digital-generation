@@ -7,6 +7,8 @@
 using namespace LD24;
 using std::vector;
 
+#define CHEAT 0
+
 LInvade::LInvade(GameScreen &screen)
     : Level(screen)
 {
@@ -106,7 +108,7 @@ void LInvade::initlevel()
         e->mat_mask = MAT_SOLID;
     }
 
-    if (1)
+    if (CHEAT)
         spawnPlayer(LEVEL_MAXX - 128, LEVEL_MINY + 16);
     else
         spawnPlayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
@@ -116,7 +118,7 @@ void LInvade::initlevel()
     m_pshot = 0;
     m_pshottime = 0;
     m_ashot = 0;
-    m_wave = 0;
+    m_wave = (CHEAT) ? 3 : 0;
 
     m_spawntime = SPAWN_TIME;
 }
