@@ -9,6 +9,8 @@ level.cpp
 level.hpp
 linvade.cpp
 linvade.hpp
+ltitle.cpp
+ltitle.hpp
 main.cpp
 sprite.cpp
 sprite.hpp

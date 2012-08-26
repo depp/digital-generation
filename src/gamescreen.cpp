@@ -7,6 +7,7 @@
 #include "lball.hpp"
 #include "linvade.hpp"
 #include "lchase.hpp"
+#include "ltitle.hpp"
 
 #include "client/ui/event.hpp"
 #include "client/viewport.hpp"
@@ -15,6 +16,30 @@
 #include "client/keycode.hpp"
 
 #include "base/audio_source.h"
+
+static const char *const TMSG[] = {
+    "Level 1\n"
+    "\n"
+    "I grew up in a four-bit\n"
+    "microcontroller on the\n"
+    "wrong side of town...\n",
+
+    "Level 2\n"
+    "\n"
+    "Sometimes you can change\n"
+    "with the times...",
+
+    "Level 3\n"
+    "\n"
+    "I could hardly keep up\n"
+    "with these new things!",
+
+    "But,\n"
+    "I managed in the end.\n"
+    "\n"
+    "      For Ludum Dare #24\n"
+    "         by Dietrich Epp"
+};
 
 static const unsigned LAG_THRESHOLD = 250;
 
@@ -70,20 +95,27 @@ unsigned GameScreen::getControls()
 
 void GameScreen::advance(unsigned ticks, int controls)
 {
+    if (m_lvchange > 7)
+        m_lvchange = -1;
     if (m_lvchange >= 0) {
         if (m_level) {
             delete m_level;
             m_level = NULL;
         }
         switch (m_lvchange) {
-        case 1: m_level = new LBall(*this); break;
-        case 2: m_level = new LChase(*this); break;
-        case 3: m_level = new LInvade(*this); break;
+        case 1: m_level = new LTitle(*this, TMSG[0], false); break;
+        case 2: m_level = new LBall(*this); break;
+        case 3: m_level = new LTitle(*this, TMSG[1], false); break;
+        case 4: m_level = new LChase(*this); break;
+        case 5: m_level = new LTitle(*this, TMSG[2], false); break;
+        case 6: m_level = new LInvade(*this); break;
+        case 7: m_level = new LTitle(*this, TMSG[3], true); break;
         default: assert(0);
         }
         m_lvno = m_lvchange;
         m_lvchange = -1;
     }
+    assert(m_level != NULL);
     m_level->advance(ticks, controls);
 }
 
