@@ -46,7 +46,9 @@ static const unsigned char KEY_MAP[] = {
 GameScreen::GameScreen()
     : m_level(NULL),
       m_init(false),
-      m_key(KEY_MAP)
+      m_key(KEY_MAP),
+      m_lvchange(-1),
+      m_lvno(0)
 {
     m_letterbox.setISize(1280, 720);
 }
@@ -66,15 +68,29 @@ unsigned GameScreen::getControls()
     return x;
 }
 
+void GameScreen::advance(unsigned ticks, int controls)
+{
+    if (m_lvchange >= 0) {
+        if (m_level) {
+            delete m_level;
+            m_level = NULL;
+        }
+        switch (m_lvchange) {
+        case 1: m_level = new LBall(*this); break;
+        case 2: m_level = new LChase(*this); break;
+        case 3: m_level = new LInvade(*this); break;
+        default: assert(0);
+        }
+        m_lvno = m_lvchange;
+        m_lvchange = -1;
+    }
+    m_level->advance(ticks, controls);
+}
+
 void GameScreen::update(unsigned ticks)
 {
     if (!m_init) {
-        if (!m_level) {
-            // m_level = new LBall(*this);
-            m_level = new LChase(*this);
-            // m_level = new LInvade(*this);
-        }
-
+        m_lvchange = m_lvno + 1;
         m_tickref = ticks;
         m_init = true;
         m_delta = 0;
@@ -83,14 +99,14 @@ void GameScreen::update(unsigned ticks)
         if (delta > LAG_THRESHOLD) {
             m_tickref = ticks;
             m_delta = 0;
-            m_level->advance(ticks, getControls());
+            advance(ticks, getControls());
         } else {
             if (delta >= (unsigned) FRAME_TIME) {
                 unsigned ctl = getControls();
                 unsigned frames = delta / FRAME_TIME;
                 unsigned ref = m_tickref;
                 for (unsigned i = 0; i < frames; ++i)
-                    m_level->advance(ref + (i + 1) * FRAME_TIME, ctl);
+                    advance(ref + (i + 1) * FRAME_TIME, ctl);
                 m_tickref = ref + FRAME_TIME * frames;
                 delta -= FRAME_TIME * frames;
             }
@@ -98,7 +114,7 @@ void GameScreen::update(unsigned ticks)
         }
     }
     sg_audio_source_commit(ticks, ticks);
-}
+    }
 
 void GameScreen::draw(Viewport &v, unsigned msec)
 {

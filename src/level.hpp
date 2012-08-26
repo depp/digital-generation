@@ -21,6 +21,8 @@ public:
 
     /* Draw the frame (frac is milliseconds since 'advance') */
     virtual void draw(int frac) = 0;
+
+    void nextLevel();
 };
 
 }

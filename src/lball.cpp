@@ -101,8 +101,9 @@ void LBall::advance(unsigned time, int controls)
 
     case ST_MATCH_P1:
     case ST_MATCH_P2:
-        break;
         if (m_tick > 8 * SECOND) {
+            if (m_state == ST_MATCH_P1)
+                nextLevel();
             m_npoints[0] = 0;
             m_npoints[1] = 0;
             goto start;

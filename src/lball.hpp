@@ -32,7 +32,7 @@ private:
         PLAYER_MAXFALL = 1024,
         PLAYER_JUMP = 512 * 6;
 
-    static const int MAX_SCORE = 1,
+    static const int MAX_SCORE = 3,
         PRE_TIME = 30, CHAOS_TIME = 5; //30 5
 
     typedef enum {

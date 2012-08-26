@@ -18,7 +18,10 @@ private:
     unsigned m_delta;
     bool m_init;
     UI::KeyManager m_key;
+    int m_lvchange;
+    int m_lvno;
 
+    void advance(unsigned ticks, int controls);
     unsigned getControls();
 
 public:
@@ -34,6 +37,11 @@ public:
     void convert(int &x, int &y)
     {
         m_letterbox.convert(x, y);
+    }
+
+    void nextLevel()
+    {
+        m_lvchange = m_lvno + 1;
     }
 };
 
