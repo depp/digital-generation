@@ -138,9 +138,9 @@ void LChase::startWave(int wave)
         }
     }
 
-    m_board.tiles[sp[0][0]][sp[0][1]] |= T_ITEM;
-    m_board.tiles[sp[1][0]][sp[1][1]] |= T_ITEM;
-    m_board.tiles[sp[2][0]][sp[2][1]] |= T_DOOR;
+    m_board.tiles[sp[0][1]][sp[0][0]] |= T_ITEM;
+    m_board.tiles[sp[1][1]][sp[1][0]] |= T_ITEM;
+    m_board.tiles[sp[2][1]][sp[2][0]] |= T_DOOR;
     for (int i = 0; i < 3; ++i) {
         m_actor[i].move = -1;
         m_actor[i].x = sp[3+i][0];
