@@ -14,7 +14,7 @@ public:
         NUM_WAVES = 3, NUM_POS = 6;
 
     struct Board {
-        char tiles[HEIGHT][WIDTH];
+        unsigned char tiles[HEIGHT][WIDTH];
 
         void clear();
 
@@ -24,6 +24,25 @@ public:
                 return 0;
             return tiles[y][x];
         }
+    };
+
+    struct MPath {
+        // List of dx/dy for a monster
+        MPath()
+            : delay(0), pos(0), count(0)
+        { }
+
+        void reset()
+        {
+            delay = 0;
+            pos = 0;
+            count = 0;
+        }
+
+        static const int LEN = 16;
+        int delay;
+        int pos, count;
+        signed char moves[LEN][2];
     };
 
     static const int NUM_MONSTER = 2,
@@ -77,8 +96,10 @@ private:
     int m_state_time;
 
     Actor m_actor[NUM_ACTOR];
+    MPath m_path[NUM_MONSTER];
 
     void startWave(int wave);
+    void findPath(int monster);
 
 public:
     LChase(GameScreen &screen);

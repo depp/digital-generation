@@ -153,6 +153,130 @@ void LChase::startWave(int wave)
     m_state_time = 0;
 }
 
+void LChase::findPath(int monster)
+{
+    /* We simply find the shortest path to the player, then chop it
+       short at the first branch.  We pretend the other monster is an
+       obstacle (otherwise, they might clump).  */
+    static const int MAX_BRANCH = 32;
+
+    /* Create the board, filling it with 255 for passable, 0 for
+       impassable, 254 for the monster's location, and 1 for the
+       player's location.  */
+    Board d;
+    if (0)
+        std::puts("findPath");
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            int c = m_board.tiles[y][x];
+            d.tiles[y][x] = (c & T_PASS) ? 255 : 0;
+        }
+    }
+    for (int i = 0; i < NUM_MONSTER; ++i) {
+        int x = m_actor[i+1].x, y = m_actor[i+1].y;
+        d.tiles[y][x] = 0;
+    }
+    int mx = m_actor[monster+1].x, my = m_actor[monster+1].y;
+    int px = m_actor[0].x, py = m_actor[0].y;
+    d.tiles[my][mx] = 254;
+    d.tiles[py][px] = 1;
+
+    /* Do a simple breadth-first search for the monster from the
+       player's location.  Mark each tile with the distance to the
+       player, plus one.  */
+    bool found = false;
+    Pos front[2][MAX_BRANCH];
+    int nfront = 1;
+    front[0][0].x = px;
+    front[0][0].y = py;
+    for (int dist = 2; dist < 254 && !found; ++dist) {
+        if (!nfront)
+            break;
+        //std::printf("nfront = %d\n", nfront);
+        int n = 0;
+        for (int j = 0; j < nfront; ++j) {
+            Pos f = front[dist&1][j];
+            for (int dir = 0; dir < 4; ++dir) {
+                Pos p = Pos::fromDir(dir);
+                int x = p.x + f.x, y = p.y + f.y;
+                int od = d.get(x, y);
+                //std::printf("od = %d\n", od);
+                if (od == 254)
+                    found = true;
+                if (od >= 254 && n < MAX_BRANCH) {
+                    Pos &dp = front[!(dist&1)][n++];
+                    dp.x = x;
+                    dp.y = y;
+                    d.tiles[y][x] = dist;
+                }
+            }
+        }
+        nfront = n;
+    }
+
+    if (0) {
+        puts("DISTANCE");
+        for (int y = HEIGHT-1; y >= 0; --y) {
+            for (int x = 0; x < WIDTH; ++x) {
+                int c = d.tiles[y][x];
+                if (!c)
+                    std::fputs("   ", stdout);
+                else if (c == 255)
+                    std::fputs("  .", stdout);
+                else
+                    std::printf("%3d", c);
+            }
+            std::putchar('\n');
+        }
+    }
+
+    /* Crawl the path forwards, generating moves.  */
+    MPath &path = m_path[monster];
+    if (found) {
+        int delay = 0;
+        int x = mx, y = my, count, dist = d.get(mx, my);
+        if (0)
+            std::printf("found path %d,%d to %d,%d, dist=%d\n",
+                        mx, my, px, py, dist);
+        for (count = 0; count < MPath::LEN; ++count) {
+            int dx = 0, dy = 0, ct = 0;
+            for (int dir = 0; dir < 4; ++dir) {
+                Pos p = Pos::fromDir(dir);
+                if (m_board.get(p.x + x, p.y + y) & T_PASS)
+                    ct += 1;
+                else
+                    continue;
+                int ndist = d.get(p.x + x, p.y + y);
+                if (ndist != 0 && ndist == dist - 1) {
+                    dx = p.x;
+                    dy = p.y;
+                }
+            }
+            if (!ct)
+                break;
+            if (ct > 2 && count > 0) {
+                delay = SECOND/4;
+                break;
+            }
+            path.moves[count][0] = dx;
+            path.moves[count][1] = dy;
+            dist -= 1;
+            x += dx;
+            y += dy;
+        }
+        path.pos = 0;
+        path.count = count;
+        path.delay = delay;
+        //std::printf("found path, len=%d\n", count);
+    } else {
+        puts("Cannot find path to player, sleeping");
+        path.pos = 0;
+        path.count = 0;
+        path.delay = SECOND/4;
+    }
+}
+
+
 void LChase::advance(unsigned time, int controls)
 {
     m_beat = (m_beat + 1) & 0xff;
@@ -187,7 +311,18 @@ void LChase::advance(unsigned time, int controls)
             else if (cx && (m_board.get(x + cx, y) & T_PASS) != 0)
                 dx = cx;
         } else {
-            
+            MPath &p = m_path[i - 1];
+            if (p.pos >= p.count) {
+                if (!p.delay)
+                    findPath(i - 1);
+            }
+            if (p.pos < p.count) {
+                dx = p.moves[p.pos][0];
+                dy = p.moves[p.pos][1];
+                p.pos += 1;
+            } else if (p.delay) {
+                p.delay -= 1;
+            }
         }
         if (dx || dy) {
             m_actor[i].move = 0;
