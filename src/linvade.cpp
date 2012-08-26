@@ -106,7 +106,10 @@ void LInvade::initlevel()
         e->mat_mask = MAT_SOLID;
     }
 
-    spawnPlayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
+    if (1)
+        spawnPlayer(LEVEL_MAXX - 128, LEVEL_MINY + 16);
+    else
+        spawnPlayer(LEVEL_MINX + 32, LEVEL_MINY + 16);
 
     m_campx = m_camx = LEVEL_MINX + CAMERA_WIDTH / 2;
 
@@ -211,31 +214,35 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
         if (player) {
             int a = o->id;
             fx = FX_DONK;
-            if (m_ahealth[a] > 0) {
+            if (m_ahealth[a] > 0 && m_alien[a]) {
                 m_ahealth[a]--;
                 if (!m_ahealth[a]) {
                     fx = o->type == TYPE_ALIEN3 ? FX_BOOM2 : FX_BOOM1;
                     m_astate[a] = AL_CRASH;
                     m_alien[a]->vx =
-                        fix2i(ALIEN_SPEED * (rand8() -128));
-                    m_alien[a]->vy = -ALIEN_SPEED / 2;
+                        fix2i(2 * ALIEN_SPEED * (rand8() -128));
+                    m_alien[a]->vy = -ALIEN_SPEED;
                 }
             }
         }
         break;
 
     case TYPE_PLAYER:
-        if (!player) {
+        if (!player && m_player) {
             m_state = ST_DEAD;
             m_aplayer.stop(time);
             m_aplayer.play(time, *m_fx[FX_LOSE], 0);
+            m_player->vx = 0;
+            m_player = NULL;
+            m_tank = NULL;
         }
         break;
 
     case TYPE_TANK:
-        if (!player && !m_player) {
+        if (!player && !m_player && m_tank) {
             fx = FX_BOOM1;
             m_state = ST_WALK_AGAIN;
+            m_tank->vx = 0;
             int x = m_tank->x;
             if (x > (LEVEL_MINX + LEVEL_MAXX) / 2)
                 x -= 32;
@@ -261,7 +268,6 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
         ns = LV3::POOF1;
     }
     m_zone.newtemp(ns, s.x, y, POOF_TIME);
-    fx = FX_PLINK;
 
     if (fx >= 0) {
         AudioSource &s =
@@ -273,17 +279,43 @@ void LInvade::shotCollide(unsigned time, Zone::EMover &s,
     (void) dir;
 }
 
+void LInvade::alienCollide(unsigned time, Zone::EMover &ent,
+                           Zone::ECollide *o, Zone::Dir dir)
+{
+    int a = ent.id;
+    if (!m_alien[a])
+        return;
+    switch (m_astate[a]) {
+    case AL_CRASH:
+        m_alien[a]->is_active = false;
+        m_alien[a] = NULL;
+        m_acount -= 1;
+        if (!m_acount) {
+            m_spawntime = SECOND / 2;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    (void) time;
+    (void) o;
+    (void) dir;
+}
+
 void LInvade::spawnAliens(unsigned time)
 {
     int wave = m_wave + 1;
     if (wave >= NUM_WAVES)
         wave = NUM_WAVES;
+    m_wave = wave;
     bool spawned = false;
     int t1 = 0, t2 = 0;
     switch (wave) {
     case 1: t1 = 0; t2 = 0; break;
     case 2: t1 = 0; t2 = 1; break;
-    case 3: case 4: t2 = 1; t2 = 1; break;
+    case 3: case 4: t1 = 1; t2 = 1; break;
     }
     for (int i = 0; i < ALIEN_COUNT; ++i) {
         if (m_alien[i])
@@ -303,6 +335,10 @@ void LInvade::spawnAliens(unsigned time)
         e->id = i;
         e->w = 32;
         e->h = 16;
+        if (t == 2) {
+            e->w = 64;
+            e->h = 32;
+        }
         e->vy = -256;
         e->mat_mask = MAT_ALIEN;
         e->col_mask = MAT_SOLID;
@@ -323,6 +359,8 @@ void LInvade::alienShoot(unsigned time, int a) {
     m_ashottime[a] = fix2i(ALIEN_SHOTTIME * (128 + rand8()));
     int c = 1;
     bool didshoot = false;
+    if (!m_alien[a])
+        return;
     switch (m_alien[a]->type) {
     case TYPE_ALIEN1: c = 1; break;
     case TYPE_ALIEN2: c = 3; break;
@@ -521,6 +559,12 @@ void LInvade::advance(unsigned time, int controls)
             case TYPE_PSHOT:
             case TYPE_ASHOT:
                 shotCollide(time, e, o, i->dir);
+                break;
+
+            case TYPE_ALIEN1:
+            case TYPE_ALIEN2:
+            case TYPE_ALIEN3:
+                alienCollide(time, e, o, i->dir);
                 break;
             }
         }

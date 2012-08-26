@@ -34,7 +34,7 @@ private:
         SHOT_SPEED = 256 * 2,
         POOF_TIME = SECOND / 4,
 
-        NUM_WAVES = 3,
+        NUM_WAVES = 4,
         SPAWN_TIME = SECOND * 3,
         ALIEN_MINH = 192,
         ALIEN_MAXH = SCREEN_HEIGHT / 2 - 32,
@@ -119,6 +119,8 @@ private:
     void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
     void shotCollide(unsigned time, Zone::EMover &s,
                      Zone::ECollide *o, Zone::Dir dir);
+    void alienCollide(unsigned time, Zone::EMover &ent,
+                      Zone::ECollide *o, Zone::Dir dir);
     void spawnAliens(unsigned time);
     void alienShoot(unsigned time, int i);
 
