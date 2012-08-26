@@ -57,6 +57,7 @@ private:
     AudioFile::Ref m_fx[FX_COUNT];
     AudioSource m_audio;
     int m_waveno;
+    int m_beat;
 
     // LOCAL (reset when a wave is started)
     unsigned char m_tiles[WIDTH][HEIGHT];

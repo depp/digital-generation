@@ -65,6 +65,7 @@ LChase::LChase(GameScreen &screen)
     m_audio.open();
 
     startWave(0);
+    m_beat = 0;
 }
 
 LChase::~LChase()
@@ -149,6 +150,7 @@ void LChase::startWave(int wave)
 
 void LChase::advance(unsigned time, int controls)
 {
+    m_beat = (m_beat + 1) & 0xff;
     (void) time;
     (void) controls;
 }
@@ -180,9 +182,9 @@ void LChase::draw(int frac)
             if (c & T_PLATFORM)
                 sp.draw(LV2::PLAT, x * 16, y * 16);
             if (c & T_ITEM)
-                sp.draw(LV2::KEY, x * 16, y * 16);
+                sp.draw(LV2::KEY, x * 16, y * 16 - 3);
             if (c & T_DOOR)
-                sp.draw(LV2::DOOR, x * 16, y * 16);
+                sp.draw(LV2::DOOR, x * 16, y * 16 - 1);
         }
     }
     for (int i = 0; i < 3; ++i) {
@@ -197,6 +199,8 @@ void LChase::draw(int frac)
             s = LV2::PLAYER;
         else
             s = LV2::MON1 + m_waveno * 2;
+        s += ((m_beat >> 6) & 1);
+        y -= 1;
         sp.draw(s, x, y);
     }
     glEnd();
