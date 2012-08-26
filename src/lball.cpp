@@ -100,10 +100,15 @@ void LBall::advance(unsigned time, int controls)
         break;
 
     case ST_MATCH_P1:
+        if (m_tick > 4 * SECOND) {
+            m_npoints[0] = 0;
+            m_npoints[1] = 0;
+            goto start;
+        }
+        break;
+
     case ST_MATCH_P2:
         if (m_tick > 8 * SECOND) {
-            if (m_state == ST_MATCH_P1)
-                nextLevel();
             m_npoints[0] = 0;
             m_npoints[1] = 0;
             goto start;
@@ -121,6 +126,7 @@ void LBall::advance(unsigned time, int controls)
 
     switch (sst) {
     case SS_BEGIN:
+        // FOR QUICK WINS do this sooner
         if (m_stick > PRE_TIME * SECOND) {
             m_stick = 0;
             m_sstate = SS_CHAOS;
@@ -146,6 +152,12 @@ void LBall::advance(unsigned time, int controls)
             m_stick = 0;
         if (ctl_delta & FLAG_ACTION)
             goto spit;
+        break;
+
+    case SS_WIN:
+        if (m_stick > WIN_TIME * SECOND) {
+            nextLevel();
+        }
         break;
 
     spit:
@@ -264,6 +276,15 @@ void LBall::advance(unsigned time, int controls)
 
             if (m_playy >= BALL_YMAX * 256) {
                 surf = BALL_YMAX * 256;
+                int x = fix2i(m_playx) + SCREEN_WIDTH / 2;
+                if (0)
+                    std::printf("x %d, %d, %d\n",
+                                x, dotPos(2), dotPos(9));
+                if (x >= dotPos(2) && x <= dotPos(9)) {
+                    m_sstate = SS_WIN;
+                    m_stick = 0;
+                    fx = FX_GOOD;
+                }
                 goto ceiling;
             }
             if (boxc) {
@@ -355,6 +376,8 @@ void LBall::advance(unsigned time, int controls)
                     fx = (int) FX_GOOD;
                     m_npoints[0] += 1;
                 }
+                // FOR QUICK WINS
+                // m_npoints[0] = MAX_SCORE;
                 m_agame.stop(time);
                 m_agame.pset(AudioSource::PAN, time, 0.0f);
                 m_agame.play(time, *m_fx[fx], 0);
@@ -405,6 +428,52 @@ void LBall::advance(unsigned time, int controls)
 
     if (m_state != st)
         m_tick = 0;
+
+    if (m_sstate == SS_CHAOS) {
+        float chaosx = (float) m_stick / (float) (SECOND * CHAOS_TIME);
+        int chaosi = (int) (256 * chaosx);
+        float r;
+        for (int i = 0; i < 2; ++i) {
+            r = Rand::gfrand();
+            if (r < chaosx * 0.1f) {
+                m_showpoints[i] = rand8() % 100;
+            } else if (1 - r < (1 - chaosx) * 0.2f) {
+                m_showpoints[i] = m_npoints[i];
+            }
+        }
+
+        int dist = fix2i(chaosi * 32);
+
+        for (int i = 0; i < 4; ++i) {
+            Pos p = Pos::rand(dist);
+            m_score[i].x += p.x;
+            m_score[i].y += p.y;
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < DOT_COUNT; ++j) {
+                Pos p = Pos::rand(dist / 4);
+                m_dots[i][j].x += p.x;
+                m_dots[i][j].y += p.y;
+            }
+        }
+
+        for (int i = 0; i < 2; ++i) {
+            Pos p = Pos::rand(dist / 8);
+            m_paddle[i].x += p.x;
+            m_paddle[i].y += p.y;
+        }
+        m_chaosx = chaosx;
+    } else {
+        for (int i = 0; i < 2; ++i)
+            m_showpoints[i] = m_npoints[i];
+        m_chaosx = 0.0f;
+        if (m_sstate != SS_BEGIN) {
+            for (int i = 2; i < 10; ++i) {
+                m_dots[1][i].y += 64;
+            }
+        }
+    }
 }
 
 static void pscore(unsigned char *p, unsigned x)
@@ -418,9 +487,14 @@ void LBall::draw(int frac)
 {
     const SpriteSheet &s = SpriteSheet::LV1;
     State st = m_state;
+    bool chaos = m_sstate == SS_CHAOS;
 
     //glClearColor(0.1, 0.1, 0.1, 0.0);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    if (!chaos || m_chaosx > 0.25f) {
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+    } else {
+        glClearColor(0.25f - m_chaosx, 0.0, 0.0, 0.0);
+    }
     glClear(GL_COLOR_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
@@ -428,15 +502,6 @@ void LBall::draw(int frac)
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
     glBegin(GL_TRIANGLES);
-
-/*
-    for (int i = 0; i < 10; ++i)
-        s.draw(i, 64 + 40*i, 64, 1.0f);
-    s.draw(10, 64, 256, 1.0f);
-    s.draw(11, 128, 256, 1.0f);
-    s.draw(12, 64, 384, 1.0f);
-    s.draw(13, 128, 384, 1.0f);
-*/
 
     glColor3ub(255, 255, 255);
     for (int i = 0; i < 2; ++i)
@@ -452,8 +517,8 @@ void LBall::draw(int frac)
         m_ball.draw(s, frac, SP_DOT);
 
     unsigned char pts[4];
-    pscore(pts + 0, m_npoints[0]);
-    pscore(pts + 2, m_npoints[1]);
+    pscore(pts + 0, m_showpoints[0]);
+    pscore(pts + 2, m_showpoints[1]);
     for (int i = 0; i < 4; ++i)
         m_score[i].draw(s, frac, SP_NUMBER + pts[i]);
 
@@ -466,7 +531,7 @@ void LBall::draw(int frac)
         s.draw(SP_WIN,        x +  2*8, y);
     }
 
-    if (m_sstate == SS_SPIT || m_sstate == SS_OUT) {
+    if (m_sstate == SS_SPIT || m_sstate == SS_OUT || m_sstate == SS_WIN) {
         glColor3ub(250, 200, 15);
         m_player.draw(s, frac, SP_PLAYER);
     }

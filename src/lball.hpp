@@ -34,6 +34,7 @@ private:
 
     static const int MAX_SCORE = 3,
         PRE_TIME = 30, CHAOS_TIME = 5; //30 5
+    static const int WIN_TIME = 2;
 
     typedef enum {
         ST_INIT,
@@ -49,7 +50,8 @@ private:
         SS_CHAOS,
         SS_SPIT,
         SS_OUT,
-        SS_IN
+        SS_IN,
+        SS_WIN
     } SState;
 
     typedef enum {
@@ -73,6 +75,7 @@ private:
 
     SState m_sstate;
     int m_stick;
+    float m_chaosx;
 
     int m_paddlepos[2];
     Sprite m_paddle[2];
@@ -82,7 +85,7 @@ private:
     int m_ballvx, m_ballvy;
     Sprite m_ball;
 
-    int m_npoints[2];
+    int m_npoints[2], m_showpoints[2];
     Sprite m_score[4];
 
     int m_playx, m_playy;

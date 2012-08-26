@@ -58,6 +58,14 @@ struct Pos {
         }
     }
 
+    static Pos rand(int scale)
+    {
+        unsigned r = Rand::girand();
+        int x = ((r >> 7) & 511) - 256;
+        int y = ((r >> 16) & 511) - 256;
+        return Pos(fix2i(x * scale), fix2i(y * scale));
+    }
+
     Pos operator+(const Pos &o) const
     {
         return Pos(x + o.x, y + o.y);
