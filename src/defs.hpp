@@ -38,6 +38,9 @@ inline int rand8()
 }
 
 struct Pos {
+    Pos()
+    { }
+
     Pos(int xx, int yy)
         : x(xx), y(yy)
     { }
