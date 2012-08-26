@@ -31,7 +31,7 @@ static const char CHASE_LEVELS
     " ==========         ",
     " |        | *       ",
     " |    ========      ",
-    " |    |      |      ",
+    " |    |      |  *   ",
     " |  * |      ====== ",
     " ======      |    | ",
     "      |    * |    | ",
@@ -149,8 +149,8 @@ void LChase::startWave(int wave)
         m_actor[i].dy = 0;
     }
 
-    m_state = ST_COLLECT;
-    m_state_time = 0;
+    m_state = ST_BEGIN_UNPRESS;
+    m_state_time = TIME_START;
 
     for (int i = 0; i < NUM_MONSTER; ++i) {
         m_path[i].clear();
@@ -306,6 +306,8 @@ void LChase::actionLose(unsigned time)
         return;
     m_audio.stop(time);
     m_audio.play(time, *m_fx[FX_LOSE], 0);
+    m_state = ST_LOSE;
+    m_state_time = TIME_LOSE;
 }
 
 void LChase::actionWin(unsigned time)
@@ -314,13 +316,55 @@ void LChase::actionWin(unsigned time)
         return;
     m_audio.stop(time);
     m_audio.play(time, *m_fx[FX_WIN], 0);
+    m_state = ST_WIN;
+    m_state_time = TIME_WIN;
 }
 
 void LChase::advance(unsigned time, int controls)
 {
     m_beat = (m_beat + 1) & 0xff;
 
-    // Advance the actors
+    switch (m_state) {
+    case ST_BEGIN_UNPRESS:
+    case ST_BEGIN:
+        if (!controls)
+            m_state = ST_BEGIN;
+        if (m_state_time) {
+            m_state_time--;
+        } else if (m_state == ST_BEGIN) {
+            int f = FLAG_LEFT | FLAG_RIGHT | FLAG_UP | FLAG_DOWN;
+            if (controls & f) {
+                m_state = ST_COLLECT;
+                break;
+            }
+        }
+        break;
+
+    case ST_COLLECT:
+        break;
+
+    case ST_LOSE:
+        if (!m_state_time--)
+            startWave(m_waveno);
+        break;
+
+    case ST_WIN:
+        if (!m_state_time--)
+            startWave(m_waveno + 1);
+        break;
+
+    default:
+        assert(0);
+    }
+
+    if (m_state == ST_COLLECT) {
+        moveActors(time, controls);
+        checkMonsters(time);
+    }
+}
+
+void LChase::moveActors(unsigned time, int controls)
+{
     for (int i = 0; i < NUM_ACTOR; ++i) {
         int m = m_actor[i].move;
         int x = m_actor[i].x, y = m_actor[i].y;
@@ -331,19 +375,14 @@ void LChase::advance(unsigned time, int controls)
                 m_actor[i].dy = 0;
                 m = -1;
             } else if (m == (MOVE_TICKS+1)/2) {
-                int c = m_board.tiles[y][x];
                 if (i == 0) {
-                    if (c & T_MONSTER) {
-                        actionLose(time);
-                    } else if (c & T_ITEM) {
+                    int c = m_board.tiles[y][x];
+                    if (c & T_ITEM) {
                         m_board.tiles[y][x] = c & ~T_ITEM;
                         actionGet(time);
                     } else if (c & T_DOOR) {
                         actionWin(time);
                     }
-                } else {
-                    if (c & T_PLAYER)
-                        actionLose(time);
                 }
             }
         }
@@ -377,23 +416,39 @@ void LChase::advance(unsigned time, int controls)
             }
         }
         if (dx || dy) {
-            int mask = (i == 0) ? T_PLAYER : T_MONSTER;
-            m_board.tiles[y][x] &= ~mask;
-            x += dx;
-            y += dy;
-            m_board.tiles[y][x] |= mask;
             m_actor[i].move = 0;
-            m_actor[i].x = x;
-            m_actor[i].y = y;
+            m_actor[i].x = x + dx;
+            m_actor[i].y = y + dy;
             m_actor[i].dx = dx;
             m_actor[i].dy = dy;
         } else {
             m_actor[i].move = -1;
         }
     }
+}
 
-    (void) time;
-    (void) controls;
+void LChase::checkMonsters(unsigned time)
+{
+    Pos ppos = m_actor[0].curPos();
+    for (int i = 0; i < NUM_MONSTER; ++i) {
+        Pos mpos = m_actor[i+1].curPos();
+        int dx = std::abs(ppos.x - mpos.x);
+        int dy = std::abs(ppos.y - mpos.y);
+        int dist = dx > dy ? dx : dy;
+        if (dist <= CAPTURE_DISTANCE) {
+            if (0) {
+                std::printf("dx: %d, dy: %d, dist: %d, mon=%d\n",
+                            dx, dy, dist, i);
+                for (int j = 0; j < NUM_ACTOR; ++j) {
+                    Actor &a = m_actor[j];
+                    std::printf("x %d; dx %d; y %d; dy %d; move %d\n",
+                                a.x, a.dx, a.y, a.dy, a.move);
+                }
+            }
+            actionLose(time);
+            return;
+        }
+    }
 }
 
 void LChase::draw(int frac)
@@ -428,23 +483,31 @@ void LChase::draw(int frac)
                 sp.draw(LV2::DOOR, x * 16, y * 16 - 1);
         }
     }
-    for (int i = 0; i < 3; ++i) {
-        int x = m_actor[i].x * 16, y = m_actor[i].y * 16;
-        if (m_actor[i].move >= 0) {
-            int frac2 = frac + m_actor[i].move * FRAME_TIME;
-            x -= m_actor[i].dx * 16;;
-            x += (m_actor[i].dx * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
-            y -= m_actor[i].dy * 16;
-            y += (m_actor[i].dy * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
+
+    int frac1 = m_state == ST_COLLECT ? frac : 0;
+    int beat = ((m_beat >> 6) & 1);
+    bool visible = true;
+    if (m_state == ST_BEGIN || m_state == ST_BEGIN_UNPRESS)
+        visible = beat == 1;
+    if (visible) {
+        for (int i = 0; i < 3; ++i) {
+            int x = m_actor[i].x * 16, y = m_actor[i].y * 16;
+            if (m_actor[i].move >= 0) {
+                int frac2 = frac1 + m_actor[i].move * FRAME_TIME;
+                x -= m_actor[i].dx * 16;
+                x += (m_actor[i].dx * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
+                y -= m_actor[i].dy * 16;
+                y += (m_actor[i].dy * frac2 * 16) / (FRAME_TIME * MOVE_TICKS);
+            }
+            int s;
+            if (i == 0)
+                s = LV2::PLAYER;
+            else
+                s = LV2::MON1 + m_waveno * 2;
+            s += beat;
+            y -= 1;
+            sp.draw(s, x, y);
         }
-        int s;
-        if (i == 0)
-            s = LV2::PLAYER;
-        else
-            s = LV2::MON1 + m_waveno * 2;
-        s += ((m_beat >> 6) & 1);
-        y -= 1;
-        sp.draw(s, x, y);
     }
     glEnd();
 

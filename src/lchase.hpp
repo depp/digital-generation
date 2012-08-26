@@ -50,7 +50,14 @@ public:
 
     static const int MOVE_TICKS = 32;
 
+    // Delays in each state before we can move on to the next state
+    static const int TIME_WIN = SECOND * 2,
+        TIME_LOSE = SECOND * 2, TIME_START = SECOND / 2;
+
+    static const int CAPTURE_DISTANCE = 10;
+
     typedef enum {
+        ST_BEGIN_UNPRESS,
         ST_BEGIN,
         ST_COLLECT,
         ST_LOSE,
@@ -63,8 +70,6 @@ public:
         T_PLATFORM = 4,
         T_ITEM = 8,
         T_DOOR = 16,
-        T_PLAYER = 32,
-        T_MONSTER = 64
     };
 
     enum {
@@ -81,6 +86,16 @@ public:
         int move;
         unsigned char x, y;
         signed char dx, dy;
+
+        Pos curPos() const
+        {
+            if (move >= 0)
+                return Pos(
+                    16*(x-dx) + (16 * dx * move) / MOVE_TICKS,
+                    16*(y-dy) + (16 * dy * move) / MOVE_TICKS);
+            else
+                return Pos(x * 16, y * 16);
+        }
     };
 
 private:
@@ -106,6 +121,8 @@ private:
     void actionGet(unsigned time);
     void actionLose(unsigned time);
     void actionWin(unsigned time);
+    void moveActors(unsigned time, int controls);
+    void checkMonsters(unsigned time);
 
 public:
     LChase(GameScreen &screen);
