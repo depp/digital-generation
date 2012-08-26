@@ -581,7 +581,7 @@ void LInvade::advance(unsigned time, int controls)
 
 void LInvade::draw(int frac)
 {
-    const SpriteSheet sp = LV3::SPRITES;
+    const SpriteSheet &sp = LV3::SPRITES;
     int camx = m_campx + ((m_camx - m_campx) * frac) / FRAME_TIME;
 
     glClearColor(0.02, 0.03, 0.09, 0.0);
