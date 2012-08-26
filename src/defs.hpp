@@ -37,5 +37,24 @@ inline int rand8()
     return (Rand::girand() >> 12) & 255;
 }
 
+struct Pos {
+    Pos(int xx, int yy)
+        : x(xx), y(yy)
+    { }
+
+    int x, y;
+
+    static Pos fromDir(int dir)
+    {
+        switch (dir) {
+        case CTL_LEFT: return Pos(-1, 0);
+        case CTL_RIGHT: return Pos(1, 0);
+        case CTL_UP: return Pos(0, 1);
+        case CTL_DOWN: return Pos(0, -1);
+        default: return Pos(0, 0);
+        }
+    }
+};
+
 }
 #endif
