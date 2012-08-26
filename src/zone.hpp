@@ -79,7 +79,11 @@ public:
     void reset(int ntemp, int nstatic, int nmover);
 
     void newtemp(int sprite, int x, int y, int time);
+
+    // CALLER must set: type, id, w, h
     ECollide *newstatic(int sprite, int x, int y);
+
+    // CALLER must set: type, id, w, h
     EMover *newmover(int sprite, int x, int y);
 
     void setBounds(int x0, int x1, int y0, int y1)

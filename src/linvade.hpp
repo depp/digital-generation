@@ -23,22 +23,23 @@ private:
         LEVEL_MINY = 32,
         LEVEL_MAXY = SCREEN_HEIGHT / 2 + 64,
 
-        GRAVITY = 32,
+        GRAVITY = 8,
         MAX_FALL = 512,
-        PLAYER_MX = 256 * 2,
-        PLAYER_MY = 256 * 5,
+        PLAYER_MX = 256 * 1,
+        PLAYER_MY = 128 * 5,
         PLAYER_ERG = PLAYER_MX / 8,
 
         TANK_DX = 256 * 3/2,
         TANK_SHOTTIME = SECOND / 3,
-        SHOT_SPEED = 256 * 4,
-        POOF_TIME = SECOND / 2,
+        SHOT_SPEED = 256 * 2,
+        POOF_TIME = SECOND / 4,
 
         NUM_WAVES = 3,
         SPAWN_TIME = SECOND * 3,
         ALIEN_MINH = 192,
         ALIEN_MAXH = SCREEN_HEIGHT / 2 - 32,
         ALIEN_SPEED = 256,
+        ALIEN_SHOTTIME = SECOND * 3/2,
 
         CAMERA_WIDTH = SCREEN_WIDTH / 2,
         CAMERA_HEIGHT = SCREEN_HEIGHT / 2,
@@ -99,15 +100,16 @@ private:
     int m_camx, m_campx;
     int m_wave, m_spawntime;
     AlienState m_astate[ALIEN_COUNT];
-    int m_aheight[ALIEN_COUNT];
-    int m_acount;
+    int m_aheight[ALIEN_COUNT], m_ashottime[ALIEN_COUNT];
+    int m_acount, m_ashotcount;
 
     void initlevel();
     void spawnplayer(int x, int y);
     void playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir);
-    void pshotCollide(unsigned time, Zone::EMover &s,
-                      Zone::ECollide *o, Zone::Dir dir);
+    void shotCollide(unsigned time, Zone::EMover &s,
+                     Zone::ECollide *o, Zone::Dir dir);
     void spawnAliens(unsigned time);
+    void alienShoot(unsigned time, int i);
 
 public:
     LInvade(GameScreen &screen);

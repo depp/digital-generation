@@ -3,6 +3,7 @@
 #include "client/rand.hpp"
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 using namespace LD24;
 using std::vector;
 
@@ -36,7 +37,6 @@ void LInvade::spawnplayer(int x, int y)
         m_player->is_active = false;
         m_player = NULL;
     }
-    x = LEVEL_MAXX-256;
     Zone::EMover *e = m_zone.newmover(LV3::PLYR1, x, y);
     if (!e)
         return;
@@ -57,6 +57,7 @@ void LInvade::initlevel()
     for (int i = 0; i < ALIEN_COUNT; ++i)
         m_alien[i] = NULL;
     m_acount = 0;
+    m_ashotcount = 0;
 
     m_zone.reset(
         TEMP_LIMIT,
@@ -71,13 +72,15 @@ void LInvade::initlevel()
         int h = ((r >> 4) & 127) + 64;
         int x = (r >> 12) & 255;
         int y = (r >> 20) & 255;
+        y = y*3/16;
+        x = (x-128)*3/16;
         if (i == 0 || i == BARRIER_COUNT - 1) {
             x = 0;
             y = 0;
         }
-        x = (x - 128) / 4 + barrier_step / 2 + barrier_step * i;
+        x += barrier_step / 2 + barrier_step * i;
         // std::printf("y = %d\n", y);
-        y = y/4 + 64;
+        y += 64;
         
         Zone::ECollide *e = m_zone.newstatic(
             LV3::BUNK1 + (h < 128), LEVEL_MINX + x, LEVEL_MINY + y);
@@ -179,18 +182,30 @@ void LInvade::playerCollide(unsigned time, Zone::ECollide *o, Zone::Dir dir)
     }
 }
 
-void LInvade::pshotCollide(unsigned time, Zone::EMover &s,
-                           Zone::ECollide *o, Zone::Dir dir)
+void LInvade::shotCollide(unsigned time, Zone::EMover &s,
+                          Zone::ECollide *o, Zone::Dir dir)
 {
     int fx = -1;
+    bool player = s.type == TYPE_PSHOT;
     s.is_active = false;
-    m_pshot -= 1;
+    if (player)
+        m_pshot -= 1;
+    else
+        m_ashotcount -= 1;
     if (!o)
         return;
     int y = s.y;
-    if (y < o->y - o->h/2)
-        y = o->y - o->h/2;
-    m_zone.newtemp(LV3::POOF2, s.x, y, POOF_TIME);
+    int ns;
+    if (player) {
+        if (y < o->y - o->h/2)
+            y = o->y - o->h/2;
+        ns = LV3::POOF2;
+    } else {
+        if (y > o->y + o->h/2)
+            y = o->y + o->h/2;
+        ns = LV3::POOF1;
+    }
+    m_zone.newtemp(ns, s.x, y, POOF_TIME);
     fx = FX_PLINK;
 
     if (fx >= 0) {
@@ -220,7 +235,7 @@ void LInvade::spawnAliens(unsigned time)
         int y = LEVEL_MAXY - 32;
         int spread = (LEVEL_MAXX - LEVEL_MINX) / ALIEN_COUNT;
         int x = spread / 2 + i * spread;
-        Zone::EMover *e = m_zone.newmover(LV3::SHIP1 + t, x, y);
+        Zone::EMover *e = m_zone.newmover(LV3::SHIP1 + (t^1), x, y);
         if (!e)
             break;
         spawned = true;
@@ -230,14 +245,57 @@ void LInvade::spawnAliens(unsigned time)
         e->w = 32;
         e->h = 16;
         e->vy = -256;
+        e->mat_mask = MAT_ALIEN;
+        e->col_mask = MAT_SOLID;
         m_astate[i] = AL_SPAWN;
         m_aheight[i] = ALIEN_MINH +
             (int) (Rand::gfrand() * (ALIEN_MAXH - ALIEN_MINH));
+        m_ashottime[i] = fix2i(ALIEN_SHOTTIME * (64 + rand8()/2));
         m_acount += 1;
     }
     if (spawned) {
         m_aalien.stop(time);
         m_aalien.play(time, *m_fx[FX_ALIEN1], 0);
+    }
+}
+
+void LInvade::alienShoot(unsigned time, int a) {
+    m_ashottime[a] = fix2i(ALIEN_SHOTTIME * (128 + rand8()));
+    int c = 1;
+    bool didshoot = false;
+    switch (m_alien[a]->type) {
+    case TYPE_ALIEN1: c = 1; break;
+    case TYPE_ALIEN2: c = 3; break;
+    case TYPE_ALIEN3: c = 4; break;
+    }
+    for (int i = 0; i < c; ++i) {
+        if (m_ashotcount >= ASHOT_COUNT)
+            break;
+        int x = m_alien[a]->x - (c - 1) * 8 + i * 16;
+        int s;
+        if (i * 2 > c - 1)
+            s = LV3::SHOT1R;
+        else if (i * 2 < c - 1)
+            s = LV3::SHOT1L;
+        else
+            s = LV3::SHOT1C;
+        Zone::EMover *e = m_zone.newmover(s, x, m_alien[a]->y - 16);
+        if (!e)
+            break;
+        didshoot = true;
+        m_ashotcount += 1;
+        e->type = TYPE_ASHOT;
+        e->id = 0;
+        e->w = 16;
+        e->h = 16;
+        e->vy = -SHOT_SPEED;
+        e->vx = SHOT_SPEED * (2*i - c + 1) / 2;
+        e->mat_mask = 0;
+        e->col_mask = MAT_SOLID | MAT_PLAYER;
+    }
+    if (didshoot) {
+        m_aalien.stop(time);
+        m_aalien.play(time, *m_fx[FX_SHOT], 0);
     }
 }
 
@@ -302,6 +360,8 @@ void LInvade::advance(unsigned time, int controls)
                 e->w = 16;
                 e->h = 32;
                 e->vy = SHOT_SPEED;
+                e->col_mask = MAT_ALIEN | MAT_SOLID;
+                e->mat_mask = 0;
                 m_aplayer.stop(time);
                 m_aplayer.play(time, *m_fx[FX_SHOT], 0);
             }
@@ -332,6 +392,9 @@ void LInvade::advance(unsigned time, int controls)
     }
 
     for (int i = 0; i < ALIEN_COUNT; ++i) {
+        if (!m_alien[i])
+            continue;
+
         switch (m_astate[i]) {
         case AL_NONE:
             break;
@@ -346,17 +409,19 @@ void LInvade::advance(unsigned time, int controls)
         case AL_LEFT:
             if (m_alien[i]->x < m_camx - CAMERA_WIDTH / 2 + 32)
                 goto alien_chdir;
-            break;
+            goto alien_shoot;
 
         case AL_RIGHT:
             if (m_alien[i]->x > m_camx + CAMERA_WIDTH / 2 - 32)
                 goto alien_chdir;
-            break;
+            goto alien_shoot;
 
         alien_chdir:
             {
                 int r = (Rand::girand() >> 8) & 255;
                 int speed = fix2i(ALIEN_SPEED * (r + 128));
+                if (std::abs(m_alien[i]->x - m_camx) > CAMERA_WIDTH * 3 / 4)
+                    speed *= 2;
                 if (m_alien[i]->x < m_camx) {
                     m_alien[i]->vx = speed;
                     m_astate[i] = AL_RIGHT;
@@ -365,6 +430,11 @@ void LInvade::advance(unsigned time, int controls)
                     m_astate[i] = AL_LEFT;
                 }
             }
+            break;
+
+        alien_shoot:
+            if (--m_ashottime[i] <= 0)
+                alienShoot(time, i);
             break;
 
         case AL_CRASH:
@@ -389,7 +459,8 @@ void LInvade::advance(unsigned time, int controls)
                 break;
 
             case TYPE_PSHOT:
-                pshotCollide(time, e, o, i->dir);
+            case TYPE_ASHOT:
+                shotCollide(time, e, o, i->dir);
                 break;
             }
         }

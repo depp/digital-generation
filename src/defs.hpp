@@ -1,6 +1,7 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #ifndef LD24_DEFS_HPP
 #define LD24_DEFS_HPP
+#include "client/rand.hpp"
 namespace LD24 {
 
 static const int FRAME_TIME = 8;
@@ -29,6 +30,11 @@ enum {
 inline int fix2i(int x)
 {
     return (x + 128) >> 8;
+}
+
+inline int rand8()
+{
+    return (Rand::girand() >> 12) & 255;
 }
 
 }
