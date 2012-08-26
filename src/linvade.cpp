@@ -315,8 +315,10 @@ void LInvade::alienCollide(unsigned time, Zone::EMover &ent,
 void LInvade::spawnAliens(unsigned time)
 {
     int wave = m_wave + 1;
-    if (wave >= NUM_WAVES)
-        wave = NUM_WAVES;
+    if (wave > NUM_WAVES) {
+        m_state = ST_WIN;
+        return;
+    }
     m_wave = wave;
     bool spawned = false;
     int t1 = 0, t2 = 0;
@@ -431,17 +433,17 @@ void LInvade::advance(unsigned time, int controls)
             if (--m_pooftime < 0)
                 m_pooftime = newPoof(m_player, PPOOF_TIMER);
         }
+    } else if (m_state == ST_WIN) {
+        if (--m_spawntime < 0)
+            nextLevel();
+    } else {
+        if (m_spawntime && !--m_spawntime)
+            spawnAliens(time);
     }
 
     int camTarget = m_camx;
     if (m_pshottime)
         m_pshottime -= 1;
-
-    if (m_spawntime) {
-        m_spawntime--;
-        if (!m_spawntime)
-            spawnAliens(time);
-    }
 
     int ergx = 0;
     if (controls & FLAG_LEFT)
