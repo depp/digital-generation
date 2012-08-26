@@ -50,7 +50,6 @@ GameScreen::GameScreen()
       m_key(KEY_MAP)
 {
     m_letterbox.setISize(1280, 720);
-    tex_charge = Texture::file("img/charge");
 }
 
 GameScreen::~GameScreen()
@@ -100,32 +99,6 @@ void GameScreen::update(unsigned ticks)
         }
     }
     sg_audio_source_commit(ticks, ticks);
-}
-
-void GameScreen::drawCharge(unsigned msec, int amt)
-{
-    int i;
-    if (amt > MAX_CHARGE)
-        amt = MAX_CHARGE;
-    tex_charge->bind();
-    glEnable(GL_TEXTURE_2D);
-    glBegin(GL_TRIANGLES);
-    glColor3ub(255, 255, 255);
-    SpriteSheet::CHARGE.draw(0, 80, 32, 1.0f);
-    for (i = 0; i < amt; ++i) {
-        float frac = i * (1.0f / (MAX_CHARGE - 1));
-        Color::hsl(0.0f + 120.0f * frac, 1.0f, 0.1f + 0.5f * frac).set();
-        SpriteSheet::CHARGE.draw(1 + i * 6 / 20, 80, 80 + 32 * i, 1.0f);
-    }
-    glColor3ub(9, 9, 9);
-    for (; i < MAX_CHARGE; ++i) {
-        SpriteSheet::CHARGE.draw(1 + i * 6 / 20, 80, 80 + 32 * i, 1.0f);
-    }
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
-    glColor4ub(255, 255, 255, 255);
-
-    (void) msec;
 }
 
 void GameScreen::draw(Viewport &v, unsigned msec)

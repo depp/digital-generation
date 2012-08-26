@@ -13,18 +13,15 @@ class Level;
 class GameScreen : public UI::Screen {
 private:
     Letterbox m_letterbox;
-    Texture::Ref tex_charge;
     Level *m_level;
     unsigned m_tickref;
     unsigned m_delta;
     bool m_init;
     UI::KeyManager m_key;
 
-    void drawCharge(unsigned msec, int amt);
     unsigned getControls();
 
 public:
-    static const int MAX_CHARGE = 20;
 
     GameScreen();
     virtual ~GameScreen();
