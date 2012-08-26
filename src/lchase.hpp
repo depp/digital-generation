@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
-#ifndef LD24_CHASE_HPP
-#define LD24_CHASE_HPP
+#ifndef LD24_LCHASE_HPP
+#define LD24_LCHASE_HPP
 #include "defs.hpp"
 #include "level.hpp"
 #include "sprite.hpp"
