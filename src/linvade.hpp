@@ -31,7 +31,7 @@ private:
         RESPAWN_TIME = SECOND * 3,
 
         TANK_DX = 256 * 3/2,
-        TANK_SHOTTIME = SECOND / 3,
+        TANK_SHOTTIME = SECOND * 2 / 3,
         SHOT_SPEED = 256 * 2,
         POOF_TIME = SECOND / 4,
 
