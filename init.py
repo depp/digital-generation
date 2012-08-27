@@ -23,8 +23,15 @@ p.add_module(Executable(
     'DIGGEN', 'Digital Generation executable',
     reqs = 'SGLIB SGLIBXX',
     EXE_NAME = 'Digital Generation',
+    EXE_MACICON = 'Icon',
+    EXE_APPLE_CATEGORY = 'public.app-category.arcade-games',
 ))
 
 p.add_sourcelist('Game', os.path.join('src', 'srclist.txt'), 'DIGGEN')
+p.add_sourcelist_str('Resources', 'resources',
+"""\
+Icon.icns MACOSX
+""", 'DIGGEN')
+
 
 p.run()

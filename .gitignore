@@ -19,7 +19,7 @@
 /run.sh
 
 # Built sources
-/resources
+/resources/mac
 /version.c
 
 # Visual Studio
