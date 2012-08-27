@@ -6,12 +6,17 @@ namespace LD24 {
 class GameScreen;
 
 class Level {
+    const char *const *m_allTips;
+    unsigned m_tipflag;
+
+    void setTipFlags(unsigned flags);
+
 public:
     GameScreen &screen;
     std::vector<const char *> levelTips;
 
-    Level(GameScreen &s)
-        : screen(s)
+    Level(GameScreen &s, const char *const *tips=NULL)
+        : m_allTips(tips), m_tipflag(0), screen(s)
     { }
 
     virtual ~Level();
@@ -25,6 +30,9 @@ public:
     virtual void draw(int frac) = 0;
 
     void nextLevel();
+
+    void addTip(int index);
+    void removeTip(int index);
 };
 
 }
