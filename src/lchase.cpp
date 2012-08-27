@@ -14,6 +14,13 @@ void LChase::Board::clear()
     std::memset(tiles, 0, sizeof(tiles));
 }
 
+static const char *const LCHASE_TIPS[7] = {
+    "Use the arrow keys or <WASD> to move.",
+    "Monsters try to take different paths from each other.",
+    "Goal: collect all the keys, and exit through the door.",
+    "Monsters only change paths at intersections."
+};
+
 static const char CHASE_LEVELS
 [LChase::NUM_WAVES][LChase::HEIGHT][LChase::WIDTH+1] = {
 {
@@ -68,7 +75,7 @@ static const char CHASE_LEVELS
 };
 
 LChase::LChase(GameScreen &screen)
-    : Level(screen)
+    : Level(screen, LCHASE_TIPS)
 {
     m_tlv2 = Texture::file(LV2::TEXNAME);
 
@@ -85,6 +92,11 @@ LChase::LChase(GameScreen &screen)
 
     startWave(0);
     m_beat = 0;
+
+    addTip(0);
+    addTip(1);
+    addTip(2);
+    addTip(3);
 }
 
 LChase::~LChase()
@@ -469,7 +481,7 @@ void LChase::draw(int frac)
 {
     const SpriteSheet &sp = LV2::SPRITES;
 
-    glClearColor(0.4, 0.4, 0.4, 0.0);
+    glClearColor(0.3, 0.3, 0.3, 0.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glPushMatrix();
