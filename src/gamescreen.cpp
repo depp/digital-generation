@@ -17,6 +17,8 @@
 
 #include "base/audio_source.h"
 
+#include <cstdlib>
+
 static const char *const TMSG[] = {
     "Level 1\n"
     "\n"
@@ -40,6 +42,8 @@ static const char *const TMSG[] = {
     "      For Ludum Dare #24\n"
     "         by Dietrich Epp"
 };
+
+static const int TIP_TIME = 1000 * 5;
 
 static const unsigned LAG_THRESHOLD = 250;
 
@@ -73,7 +77,8 @@ GameScreen::GameScreen()
       m_init(false),
       m_key(KEY_MAP),
       m_lvchange(-1),
-      m_lvno(0)
+      m_lvno(0),
+      m_tip(-1)
 {
     m_letterbox.setISize(1280, 720);
 }
@@ -114,9 +119,21 @@ void GameScreen::advance(unsigned ticks, int controls)
         }
         m_lvno = m_lvchange;
         m_lvchange = -1;
+        m_tip = 0;
+        m_tiptick = ticks;
+        if (m_level->levelTips.empty())
+            m_tip = -1;
     }
     assert(m_level != NULL);
     m_level->advance(ticks, controls);
+    if (m_tip < 0 && !m_level->levelTips.empty())
+        m_tip = 0;
+    if (m_tip >= 0) {
+        if (std::abs((int) (ticks - m_tiptick)) > TIP_TIME)
+            m_tip++;
+        if ((size_t) m_tip >= m_level->levelTips.size())
+            m_tip = 0;
+    }
 }
 
 void GameScreen::update(unsigned ticks)
@@ -146,7 +163,7 @@ void GameScreen::update(unsigned ticks)
         }
     }
     sg_audio_source_commit(ticks, ticks);
-    }
+}
 
 void GameScreen::draw(Viewport &v, unsigned msec)
 {
@@ -161,18 +178,16 @@ void GameScreen::draw(Viewport &v, unsigned msec)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    if (m_level)
+    if (m_level) {
         m_level->draw(m_delta);
 
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
-    getFont().print(
-        8, 8,
-        "Use arrow keys or <WASD> to move. "
-        "Use <space> or <enter> to perform an action.");
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
+        if (m_tip >= 0) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+            getFont().print(8, 8, m_level->levelTips.at(m_tip));
+            glDisable(GL_BLEND);
+        }
+    }
 
     m_letterbox.disable();
 }

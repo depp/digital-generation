@@ -21,6 +21,9 @@ private:
     int m_lvchange;
     int m_lvno;
 
+    int m_tip;
+    unsigned m_tiptick;
+
     void advance(unsigned ticks, int controls);
     unsigned getControls();
 

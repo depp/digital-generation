@@ -1,12 +1,14 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #ifndef LD24_LEVEL_HPP
 #define LD24_LEVEL_HPP
+#include <vector>
 namespace LD24 {
 class GameScreen;
 
 class Level {
 public:
     GameScreen &screen;
+    std::vector<const char *> levelTips;
 
     Level(GameScreen &s)
         : screen(s)
