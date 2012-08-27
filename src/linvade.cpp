@@ -608,22 +608,22 @@ void LInvade::advance(unsigned time, int controls)
                  i = cols.begin(), e = cols.end();
              i != e; ++i)
         {
-            Zone::EMover &e = *i->ent;
+            Zone::EMover &ent = *i->ent;
             Zone::ECollide *o = i->other;
-            switch (e.type) {
+            switch (ent.type) {
             case TYPE_PLAYER:
                 playerCollide(time, o, i->dir);
                 break;
 
             case TYPE_PSHOT:
             case TYPE_ASHOT:
-                shotCollide(time, e, o, i->dir);
+                shotCollide(time, ent, o, i->dir);
                 break;
 
             case TYPE_ALIEN1:
             case TYPE_ALIEN2:
             case TYPE_ALIEN3:
-                alienCollide(time, e, o, i->dir);
+                alienCollide(time, ent, o, i->dir);
                 break;
             }
         }
