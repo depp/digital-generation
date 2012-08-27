@@ -20,6 +20,7 @@ void Level::setTipFlags(unsigned flags)
         if (flags & (1u << i))
             levelTips.push_back(m_allTips[i]);
     }
+    m_tipflag = flags;
 }
 
 void Level::addTip(int index)
