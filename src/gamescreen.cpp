@@ -126,13 +126,20 @@ void GameScreen::advance(unsigned ticks, int controls)
     }
     assert(m_level != NULL);
     m_level->advance(ticks, controls);
-    if (m_tip < 0 && !m_level->levelTips.empty())
+    if (m_tip < 0 && !m_level->levelTips.empty()) {
+        m_tiptick = ticks;
         m_tip = 0;
+    }
     if (m_tip >= 0) {
-        if (std::abs((int) (ticks - m_tiptick)) > TIP_TIME)
+        if (std::abs((int) (ticks - m_tiptick)) > TIP_TIME) {
+            m_tiptick = ticks;
             m_tip++;
-        if ((size_t) m_tip >= m_level->levelTips.size())
+        }
+        if ((size_t) m_tip >= m_level->levelTips.size()) {
             m_tip = 0;
+            if (m_level->levelTips.empty())
+                m_tip = -1;
+        }
     }
 }
 
