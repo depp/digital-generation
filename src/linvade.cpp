@@ -9,8 +9,17 @@ using std::vector;
 
 #define CHEAT 0
 
+static const char *const LINVADE_TIPS[] = {
+    "Use the arrow keys or <WASD> to move, "
+    "press <SPACE> to fire tank cannon.",
+
+    "The base on the right edge has tanks you can use.",
+
+    "Goal: defeat all aliens."
+};
+
 LInvade::LInvade(GameScreen &screen)
-    : Level(screen)
+    : Level(screen, LINVADE_TIPS)
 {
     m_tlv3 = Texture::file(LV3::TEXNAME);
     m_moon = Texture::file("img/moon");
@@ -33,6 +42,10 @@ LInvade::LInvade(GameScreen &screen)
     m_aboom.open();
 
     initlevel();
+
+    addTip(0);
+    addTip(1);
+    addTip(2);
 }
 
 void LInvade::spawnPlayer(int x, int y)
