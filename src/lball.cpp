@@ -8,6 +8,14 @@ using namespace LD24;
 
 #define SHORTCUT 0
 
+static const char *const LBALL_TIPS[] = {
+    "Use the arrow keys or <WASD> to move.",
+    "3 points wins the match.",
+    "Use the arrow keys or <WASD> to move, "
+    "press <SPACE> to exit the vehicle.",
+    "Goal: exit the arena."
+};
+
 enum {
     SP_NUMBER = 0,
     SP_PADDLE = 10,
@@ -18,7 +26,7 @@ enum {
 };
 
 LBall::LBall(GameScreen &screen)
-    : Level(screen)
+    : Level(screen, LBALL_TIPS)
 {
     m_lv1 = Texture::file("img/lv1");
 
@@ -60,6 +68,9 @@ LBall::LBall(GameScreen &screen)
         std::strcat(name, FX_NAME[i]);
         m_fx[i] = AudioFile::file(name);
     }
+
+    addTip(0);
+    addTip(1);
 }
 
 LBall::~LBall()
@@ -140,6 +151,9 @@ void LBall::advance(unsigned time, int controls)
     case SS_CHAOS:
         if (m_stick > CHAOS_TIME * SECOND) {
             m_stick = 0;
+            removeTip(0);
+            addTip(2);
+            addTip(3);
             goto spit;
         }
         break;
