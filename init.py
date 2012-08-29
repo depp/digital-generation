@@ -16,6 +16,7 @@ p.info.set(
         ('log.level.root', 'debug'),
         ('log.winconsole', 'yes'),
         ('path.data', Path('data')),
+        ('path.user', Path('user')),
     ],
 )
 
