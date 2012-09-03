@@ -33,6 +33,5 @@
 /*.vcxproj*
 /ipch
 
-# Temporary
-/data
+# Temporary game data
 /user
