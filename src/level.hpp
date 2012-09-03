@@ -2,6 +2,7 @@
 #ifndef LD24_LEVEL_HPP
 #define LD24_LEVEL_HPP
 #include <vector>
+#include <stddef.h>
 namespace LD24 {
 class GameScreen;
 
