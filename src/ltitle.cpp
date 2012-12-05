@@ -1,9 +1,9 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "ltitle.hpp"
 #include "text.hpp"
-#include "client/rand.hpp"
-#include "client/opengl.hpp"
-#include "client/bitmapfont.hpp"
+#include "sg/opengl.h"
+#include "sgpp/bitmapfont.hpp"
+#include "sgpp/rand.hpp"
 #include <cstring>
 using namespace LD24;
 

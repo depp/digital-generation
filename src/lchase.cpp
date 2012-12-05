@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "lchase.hpp"
-#include "client/rand.hpp"
+#include "sgpp/rand.hpp"
 #include <assert.h>
 #include <cstdio>
 #include <cstring>

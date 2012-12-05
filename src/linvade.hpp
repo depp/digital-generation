@@ -5,8 +5,8 @@
 #include "level.hpp"
 #include "sprite.hpp"
 #include "zone.hpp"
-#include "client/audio.hpp"
-#include "client/texture.hpp"
+#include "sgpp/audio.hpp"
+#include "sgpp/texture.hpp"
 namespace LD24 {
 
 class LInvade : public Level {

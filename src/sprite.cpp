@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "sprite.hpp"
-#include "client/opengl.hpp"
+#include "sg/opengl.h"
 #include <assert.h>
 using namespace LD24;
 

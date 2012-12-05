@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
-#include "client/ui/screen.hpp"
 #include "gamescreen.hpp"
+#include "sgpp/ui/screen.hpp"
 using namespace LD24;
 
 UI::Screen *getMainScreen()

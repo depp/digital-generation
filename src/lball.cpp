@@ -1,7 +1,7 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "lball.hpp"
 #include "sprite.hpp"
-#include "client/rand.hpp"
+#include "sgpp/rand.hpp"
 #include <cstdio>
 #include <cstring>
 using namespace LD24;

@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "text.hpp"
-#include "client/bitmapfont.hpp"
+#include "sgpp/bitmapfont.hpp"
 using namespace LD24;
 
 BitmapFont &LD24::getFont()

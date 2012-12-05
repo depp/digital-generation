@@ -1,7 +1,7 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #ifndef LD24_DEFS_HPP
 #define LD24_DEFS_HPP
-#include "client/rand.hpp"
+#include "sgpp/rand.hpp"
 namespace LD24 {
 
 static const int FRAME_TIME = 8;

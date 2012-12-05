@@ -9,13 +9,12 @@
 #include "lchase.hpp"
 #include "ltitle.hpp"
 
-#include "client/ui/event.hpp"
-#include "client/viewport.hpp"
-#include "client/opengl.hpp"
-#include "client/bitmapfont.hpp"
-#include "client/keycode.hpp"
-
-#include "base/audio_source.h"
+#include "keycode/keycode.h"
+#include "sg/audio_source.h"
+#include "sg/opengl.h"
+#include "sgpp/bitmapfont.hpp"
+#include "sgpp/ui/event.hpp"
+#include "sgpp/viewport.hpp"
 
 #include <cstdlib>
 

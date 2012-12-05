@@ -4,8 +4,8 @@
 #include "defs.hpp"
 #include "level.hpp"
 #include "sprite.hpp"
-#include "client/audio.hpp"
-#include "client/texture.hpp"
+#include "sgpp/audio.hpp"
+#include "sgpp/texture.hpp"
 #include <assert.h>
 namespace LD24 {
 

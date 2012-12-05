@@ -22,7 +22,7 @@ p.info.set(
 
 p.add_module(Executable(
     'DIGGEN', 'Digital Generation executable',
-    reqs = 'SGLIB SGLIBXX',
+    reqs = 'SG SGPP',
     EXE_NAME = 'Digital Generation',
     EXE_MACICON = 'Icon',
     EXE_APPLE_CATEGORY = 'public.app-category.arcade-games',

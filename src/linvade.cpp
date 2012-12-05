@@ -1,6 +1,6 @@
 /* Copyright 2012 Dietrich Epp <depp@zdome.net> */
 #include "linvade.hpp"
-#include "client/rand.hpp"
+#include "sgpp/rand.hpp"
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
