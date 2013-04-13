@@ -1,26 +1,9 @@
-# Xcode
-/*.xcodeproj
-
-# Build directory (OS X / Linux)
+# Build directory and products
 /build
-
-# Autotools
 /Makefile
-/aclocal.m4
-/autom4te.cache
-/config.h
-/config.h.in
-/config.log
-/config.mak
-/config.mak.in
-/config.status
-/configure
-/configure.ac
-/run.sh
-
-# Built sources
-/resources/mac
-/version.c
+/Digital_Generation*
+/Digital Generation*
+/config.dat
 
 # Visual Studio
 /Debug
